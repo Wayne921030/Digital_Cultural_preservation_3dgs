@@ -3,9 +3,9 @@ import { Paper, Box, Typography, CircularProgress } from '@mui/material'
 import InfoPanel from './InfoPanel'
 import { useViewer, useAutoRotate } from '../hooks'
 
-const Viewer = forwardRef(({ settings, onResetCamera, onToggleAutoRotate, isAutoRotating, onServerStatusChange, onErrorChange }, ref) => {
+const Viewer = forwardRef(({ settings, onResetCamera, onToggleAutoRotate, isAutoRotating, selectedModel, modelSelected, modelConfigs, onServerStatusChange, onErrorChange }, ref) => {
   // Use custom Hooks to manage core logic
-  const { isLoading, error, serverStatus, viewerRef, viewerInstanceRef, resetCamera } = useViewer(settings)
+  const { isLoading, error, serverStatus, viewerRef, viewerInstanceRef, resetCamera } = useViewer(settings, selectedModel, modelSelected, modelConfigs)
   
   // Use auto-rotation Hook
   useAutoRotate(viewerInstanceRef.current, isAutoRotating)

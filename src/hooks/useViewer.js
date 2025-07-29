@@ -1,13 +1,17 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
-
-const API_BASE_URL = "http://127.0.0.1:8000";
+import { API_BASE_URL } from "../constants";
 
 /**
  * 3D Viewer Core Logic Hook
  */
-export const useViewer = (settings) => {
-  const [isLoading, setIsLoading] = useState(true);
+export const useViewer = (
+  settings,
+  selectedModel,
+  modelSelected,
+  modelConfigs
+) => {
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [serverStatus, setServerStatus] = useState("checking");
   const viewerRef = useRef(null);
@@ -16,48 +20,100 @@ export const useViewer = (settings) => {
   const currentSettingsRef = useRef(settings);
 
   // Load model function
-  const loadModel = useCallback(async (viewer, settings) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const loadModel = useCallback(
+    async (viewer, settings, modelType) => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      if (!isMountedRef.current) return;
-      setServerStatus("connected");
+        if (!isMountedRef.current) return;
+        setServerStatus("connected");
 
-      const alphaThreshold = Math.round((settings.alphaThreshold / 10) * 255);
+        const alphaThreshold = Math.round((settings.alphaThreshold / 10) * 255);
+        const modelConfig = modelConfigs[modelType];
 
-      // Use the remote URL directly
-      console.log("Loading model from remote server...");
-      const remoteModelUrl = `${API_BASE_URL}/api/download/Rooftop_Drone_lod_25.splat`;
+        if (!modelConfig) {
+          throw new Error(`Unknown model type: ${modelType}`);
+        }
 
-      await viewer.addSplatScene(remoteModelUrl, {
-        splatAlphaRemovalThreshold: alphaThreshold,
-        showLoadingUI: false,
-        position: [0, 1, 0],
-        rotation: [0, 0, 0, 1],
-      });
+        console.log(`Loading ${modelConfig.name} model...`);
 
-      if (!isMountedRef.current) return;
-      viewer.start();
-    } catch (err) {
-      console.error("Error loading model:", err);
-      if (isMountedRef.current) {
-        setError(
-          err.message ||
-            "Error loading the 3D model from remote server. Please check if the server is running and the model file exists."
-        );
-        setServerStatus("error");
+        // Try to load primary file first
+        let modelUrl = `${API_BASE_URL}/api/download/${modelConfig.primaryFile}`;
+        let loaded = false;
+
+        try {
+          console.log(`Attempting to load: ${modelUrl}`);
+          await viewer.addSplatScene(modelUrl, {
+            splatAlphaRemovalThreshold: alphaThreshold,
+            showLoadingUI: false,
+            position: [0, 1, 0],
+            rotation: [0, 0, 0, 1],
+          });
+          loaded = true;
+          console.log(`Successfully loaded: ${modelConfig.primaryFile}`);
+        } catch (primaryError) {
+          console.warn(
+            `Failed to load primary file: ${modelConfig.primaryFile}`,
+            primaryError
+          );
+
+          // Try fallback file if available
+          if (modelConfig.fallbackFile) {
+            modelUrl = `${API_BASE_URL}/api/download/${modelConfig.fallbackFile}`;
+            console.log(`Attempting fallback: ${modelUrl}`);
+
+            try {
+              await viewer.addSplatScene(modelUrl, {
+                splatAlphaRemovalThreshold: alphaThreshold,
+                showLoadingUI: false,
+                position: [0, 1, 0],
+                rotation: [0, 0, 0, 1],
+              });
+              loaded = true;
+              console.log(
+                `Successfully loaded fallback: ${modelConfig.fallbackFile}`
+              );
+            } catch (fallbackError) {
+              console.error(
+                `Failed to load both primary and fallback files:`,
+                fallbackError
+              );
+              throw new Error(
+                `Failed to load model. Tried ${modelConfig.primaryFile} and ${modelConfig.fallbackFile}. Please check if the server is running and the model files exist.`
+              );
+            }
+          } else {
+            // No fallback available
+            throw new Error(
+              `Failed to load model: ${modelConfig.primaryFile}. Please check if the server is running and the model file exists.`
+            );
+          }
+        }
+
+        if (!isMountedRef.current) return;
+        viewer.start();
+      } catch (err) {
+        console.error("Error loading model:", err);
+        if (isMountedRef.current) {
+          setError(
+            err.message ||
+              "Error loading the 3D model from remote server. Please check if the server is running and the model file exists."
+          );
+          setServerStatus("error");
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
       }
-    } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
+    },
+    [modelConfigs]
+  );
 
   // Initialize viewer
   const initializeViewer = useCallback(() => {
-    if (!viewerRef.current) return;
+    if (!viewerRef.current || !modelSelected) return;
 
     viewerRef.current.innerHTML = "";
 
@@ -73,8 +129,8 @@ export const useViewer = (settings) => {
     viewerInstanceRef.current = viewer;
     currentSettingsRef.current = settings;
 
-    loadModel(viewer, settings);
-  }, [settings, loadModel]);
+    loadModel(viewer, settings, selectedModel);
+  }, [settings, selectedModel, modelSelected, loadModel]);
 
   // Reset camera
   const resetCamera = useCallback(() => {
@@ -97,16 +153,19 @@ export const useViewer = (settings) => {
   // Initialize effect
   useEffect(() => {
     isMountedRef.current = true;
-    initializeViewer();
+
+    if (modelSelected) {
+      initializeViewer();
+    }
 
     return () => {
       isMountedRef.current = false;
     };
-  }, []);
+  }, [modelSelected]);
 
   // Settings change effect
   useEffect(() => {
-    if (viewerInstanceRef.current && !isLoading) {
+    if (viewerInstanceRef.current && !isLoading && modelSelected) {
       const settingsChanged =
         currentSettingsRef.current.alphaThreshold !== settings.alphaThreshold ||
         currentSettingsRef.current.antialiased !== settings.antialiased;
@@ -135,10 +194,10 @@ export const useViewer = (settings) => {
 
         viewerInstanceRef.current = viewer;
         currentSettingsRef.current = settings;
-        loadModel(viewer, settings);
+        loadModel(viewer, settings, selectedModel);
       }
     }
-  }, [settings, isLoading, loadModel]);
+  }, [settings, isLoading, modelSelected, selectedModel, loadModel]);
 
   return {
     // State

@@ -4,19 +4,35 @@ import theme from './theme'
 import Header from './components/Header'
 import Controls from './components/Controls'
 import Viewer from './components/Viewer'
-import { useAppSettings } from './hooks'
+import ModelSelector from './components/ModelSelector'
+import LoadingScreen from './components/LoadingScreen'
+import { useAppSettings, useAvailableModels } from './hooks'
 
 function App() {
   // Use custom Hook to manage settings
-  const { settings, isAutoRotating, updateSettings, toggleAutoRotate } = useAppSettings()
+  const { 
+    settings, 
+    isAutoRotating, 
+    selectedModel, 
+    modelSelected,
+    updateSettings, 
+    toggleAutoRotate, 
+    updateSelectedModel,
+    resetModelSelection
+  } = useAppSettings()
+
+  // Use custom Hook to check available models
+  const { 
+    modelConfigs, 
+    isLoading: modelsLoading, 
+    error: modelsError,
+    refreshModels
+  } = useAvailableModels()
   
   const resetCameraRef = useRef(null)
-  const toggleAutoRotateRef = useRef(null)
   const viewerRef = useRef(null)
   const [serverStatus, setServerStatus] = React.useState('checking')
   const [error, setError] = React.useState(null)
-
-
 
   return (
     <ThemeProvider theme={theme}>
@@ -32,22 +48,42 @@ function App() {
         }}
       >
         <Header />
-        <Controls 
-          settings={settings}
-          onSettingsChange={updateSettings}
-          onResetCamera={resetCameraRef}
-          onToggleAutoRotate={toggleAutoRotate}
-          isAutoRotating={isAutoRotating}
-        />
-        <Viewer 
-          settings={settings}
-          onResetCamera={resetCameraRef}
-          onToggleAutoRotate={toggleAutoRotateRef}
-          isAutoRotating={isAutoRotating}
-          ref={viewerRef}
-          onServerStatusChange={setServerStatus}
-          onErrorChange={setError}
-        />
+        
+        {modelsLoading ? (
+          <LoadingScreen isLoading={modelsLoading} error={modelsError} onRetry={refreshModels} />
+        ) : !modelSelected ? (
+          <ModelSelector 
+            onModelSelect={updateSelectedModel}
+            selectedModel={selectedModel}
+            modelConfigs={modelConfigs}
+          />
+        ) : (
+          <>
+            <Controls 
+              settings={settings}
+              onSettingsChange={updateSettings}
+              onResetCamera={() => resetCameraRef.current?.()}
+              onToggleAutoRotate={toggleAutoRotate}
+              isAutoRotating={isAutoRotating}
+              selectedModel={selectedModel}
+              onModelChange={updateSelectedModel}
+              onResetModelSelection={resetModelSelection}
+              modelConfigs={modelConfigs}
+            />
+            <Viewer 
+              settings={settings}
+              onResetCamera={resetCameraRef}
+              onToggleAutoRotate={toggleAutoRotate}
+              isAutoRotating={isAutoRotating}
+              selectedModel={selectedModel}
+              modelSelected={modelSelected}
+              modelConfigs={modelConfigs}
+              ref={viewerRef}
+              onServerStatusChange={setServerStatus}
+              onErrorChange={setError}
+            />
+          </>
+        )}
       </Box>
     </ThemeProvider>
   )

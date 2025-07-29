@@ -46,3 +46,70 @@ export const THEME = {
   TEXT_PRIMARY: "#ffffff",
   TEXT_SECONDARY: "#b3b3b3",
 };
+
+// Model configurations for different device types
+export const MODEL_CONFIGS = {
+  smartphone: {
+    name: "Smartphone",
+    modelFile: "Rooftop_Drone_lod_25.splat", // Low resolution for mobile
+    description: "Optimized for mobile devices with limited GPU",
+    quality: "low",
+    features: ["Low resolution", "Fast loading", "Battery optimized"],
+  },
+  laptopWeak: {
+    name: "Laptop (Weak GPU)",
+    modelFile: "Rooftop_Drone_lod_50.splat", // Medium resolution for integrated graphics
+    description: "For laptops with integrated graphics",
+    quality: "medium",
+    features: [
+      "Medium resolution",
+      "Balanced performance",
+      "Integrated GPU optimized",
+    ],
+  },
+  laptopStrong: {
+    name: "Laptop (Strong GPU)",
+    modelFile: "Rooftop_Drone_lod_75.splat", // High resolution for dedicated graphics
+    description: "For laptops with dedicated graphics cards",
+    quality: "high",
+    features: [
+      "High resolution",
+      "Good performance",
+      "Dedicated GPU optimized",
+    ],
+  },
+  desktopStrong: {
+    name: "Desktop (Strong GPU)",
+    modelFile: "Rooftop_Drone_full.splat", // Full resolution for high-end systems
+    description: "For high-end desktop systems",
+    quality: "ultra",
+    features: [
+      "Ultra high resolution",
+      "Maximum quality",
+      "High-end GPU optimized",
+    ],
+  },
+};
+
+// Available model files mapping
+export const MODEL_FILES = {
+  smartphone: {
+    splat: "Rooftop_Drone_lod_25.splat",
+    ply: "Rooftop_Drone_lod_25.ply",
+  },
+  laptopWeak: {
+    splat: "Rooftop_Drone_lod_50.splat",
+    ply: "Rooftop_Drone_lod_50.ply",
+  },
+  laptopStrong: {
+    splat: "Rooftop_Drone_lod_75.splat",
+    ply: "Rooftop_Drone_lod_75.ply",
+  },
+  desktopStrong: {
+    splat: "Rooftop_Drone_full.splat",
+    ply: null, // No .ply version for full resolution
+  },
+};
+
+// API configuration
+export const API_BASE_URL = "http://127.0.0.1:8000";

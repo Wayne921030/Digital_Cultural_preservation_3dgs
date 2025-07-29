@@ -9,6 +9,8 @@ export const useAppSettings = () => {
     antialiased: false,
   });
   const [isAutoRotating, setIsAutoRotating] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("smartphone");
+  const [modelSelected, setModelSelected] = useState(false);
 
   const updateSettings = useCallback((newSettings) => {
     console.log("App: Settings changed:", newSettings);
@@ -19,10 +21,26 @@ export const useAppSettings = () => {
     setIsAutoRotating((prev) => !prev);
   }, []);
 
+  const updateSelectedModel = useCallback((model, confirmed = false) => {
+    console.log("App: Model changed:", model);
+    setSelectedModel(model);
+    if (confirmed) {
+      setModelSelected(true);
+    }
+  }, []);
+
+  const resetModelSelection = useCallback(() => {
+    setModelSelected(false);
+  }, []);
+
   return {
     settings,
     isAutoRotating,
+    selectedModel,
+    modelSelected,
     updateSettings,
     toggleAutoRotate,
+    updateSelectedModel,
+    resetModelSelection,
   };
 };
