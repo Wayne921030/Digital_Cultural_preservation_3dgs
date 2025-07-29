@@ -51,14 +51,16 @@ export const THEME = {
 export const MODEL_CONFIGS = {
   smartphone: {
     name: "Smartphone",
-    modelFile: "Rooftop_Drone_lod_25.splat", // Low resolution for mobile
+    splat: "Rooftop_Drone_lod_25.splat",
+    ply: "Rooftop_Drone_lod_25.ply",
     description: "Optimized for mobile devices with limited GPU",
     quality: "low",
     features: ["Low resolution", "Fast loading", "Battery optimized"],
   },
   laptopWeak: {
     name: "Laptop (Weak GPU)",
-    modelFile: "Rooftop_Drone_lod_50.splat", // Medium resolution for integrated graphics
+    splat: "Rooftop_Drone_lod_50.splat",
+    ply: "Rooftop_Drone_lod_50.ply",
     description: "For laptops with integrated graphics",
     quality: "medium",
     features: [
@@ -69,7 +71,8 @@ export const MODEL_CONFIGS = {
   },
   laptopStrong: {
     name: "Laptop (Strong GPU)",
-    modelFile: "Rooftop_Drone_lod_75.splat", // High resolution for dedicated graphics
+    splat: "Rooftop_Drone_lod_75.splat",
+    ply: "Rooftop_Drone_lod_75.ply",
     description: "For laptops with dedicated graphics cards",
     quality: "high",
     features: [
@@ -80,7 +83,8 @@ export const MODEL_CONFIGS = {
   },
   desktopStrong: {
     name: "Desktop (Strong GPU)",
-    modelFile: "Rooftop_Drone_full.splat", // Full resolution for high-end systems
+    splat: "Rooftop_Drone_full.splat",
+    ply: "Rooftop_Drone_full.ply",
     description: "For high-end desktop systems",
     quality: "ultra",
     features: [
@@ -107,9 +111,6 @@ export const MODEL_FILES = {
   },
   desktopStrong: {
     splat: "Rooftop_Drone_full.splat",
-    ply: null, // No .ply version for full resolution
+    ply: "Rooftop_Drone_full.ply",
   },
 };
-
-// API configuration
-export const API_BASE_URL = "http://127.0.0.1:8000";

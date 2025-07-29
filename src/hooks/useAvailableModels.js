@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { MODEL_CONFIGS } from "../constants";
 
 // Fetch available models from server
 const fetchAvailableModels = async () => {
@@ -42,53 +43,8 @@ export const useAvailableModels = () => {
   const [error, setError] = useState(null);
   const [modelConfigs, setModelConfigs] = useState({});
 
-  // Define the model configurations we want to check
-  const desiredModels = {
-    smartphone: {
-      name: "Smartphone",
-      splat: "Rooftop_Drone_lod_25.splat",
-      ply: "Rooftop_Drone_lod_25.ply",
-      description: "Optimized for mobile devices with limited GPU",
-      quality: "low",
-      features: ["Low resolution", "Fast loading", "Battery optimized"],
-    },
-    laptopWeak: {
-      name: "Laptop (Weak GPU)",
-      splat: "Rooftop_Drone_lod_50.splat",
-      ply: "Rooftop_Drone_lod_50.ply",
-      description: "For laptops with integrated graphics",
-      quality: "medium",
-      features: [
-        "Medium resolution",
-        "Balanced performance",
-        "Integrated GPU optimized",
-      ],
-    },
-    laptopStrong: {
-      name: "Laptop (Strong GPU)",
-      splat: "Rooftop_Drone_lod_75.splat",
-      ply: "Rooftop_Drone_lod_75.ply",
-      description: "For laptops with dedicated graphics cards",
-      quality: "high",
-      features: [
-        "High resolution",
-        "Good performance",
-        "Dedicated GPU optimized",
-      ],
-    },
-    desktopStrong: {
-      name: "Desktop (Strong GPU)",
-      splat: "Rooftop_Drone_full.splat",
-      ply: null,
-      description: "For high-end desktop systems",
-      quality: "ultra",
-      features: [
-        "Ultra high resolution",
-        "Maximum quality",
-        "High-end GPU optimized",
-      ],
-    },
-  };
+  // Use the imported model configurations
+  const desiredModels = MODEL_CONFIGS;
 
   // Check which models are available
   const checkAvailableModels = useCallback(async () => {
