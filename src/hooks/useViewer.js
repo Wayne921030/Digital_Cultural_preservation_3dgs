@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
-import { API_BASE_URL } from "../constants";
 
 /**
  * 3D Viewer Core Logic Hook
@@ -39,7 +38,7 @@ export const useViewer = (
         console.log(`Loading ${modelConfig.name} model...`);
 
         // Try to load primary file first
-        let modelUrl = `${API_BASE_URL}/api/download/${modelConfig.primaryFile}`;
+        let modelUrl = `/models/${modelConfig.primaryFile}`;
         let loaded = false;
 
         try {
@@ -60,7 +59,7 @@ export const useViewer = (
 
           // Try fallback file if available
           if (modelConfig.fallbackFile) {
-            modelUrl = `${API_BASE_URL}/api/download/${modelConfig.fallbackFile}`;
+            modelUrl = `/models/${modelConfig.fallbackFile}`;
             console.log(`Attempting fallback: ${modelUrl}`);
 
             try {

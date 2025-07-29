@@ -5,6 +5,13 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
+    proxy: {
+      "/models": {
+        target: "https://d7yb14d27s1sv.cloudfront.net",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/models/, "/aws-models"),
+      },
+    },
     port: 3000,
     open: true,
     headers: {
@@ -15,4 +22,5 @@ export default defineConfig({
   optimizeDeps: {
     include: ["@mkkellogg/gaussian-splats-3d"],
   },
+  publicDir: "public",
 });

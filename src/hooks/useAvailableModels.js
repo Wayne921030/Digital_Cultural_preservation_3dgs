@@ -1,5 +1,40 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchAvailableModels, checkModelExists } from "../services/api";
+
+// Fetch available models from server
+const fetchAvailableModels = async () => {
+  try {
+    const url = `/models/models.json?v=${Date.now()}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const contentType = response.headers.get("content-type");
+
+    let data;
+    if (contentType && contentType.includes("application/json")) {
+      data = await response.json();
+    } else {
+      // If not JSON, try to parse as text first
+      const text = await response.text();
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.warn(
+          "Failed to parse response as JSON, treating as plain text"
+        );
+        // If it's not JSON, split by newlines or commas to get file list
+        data = text.split(/[\n,]/).filter((item) => item.trim().length > 0);
+      }
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching available models:", error);
+    throw error;
+  }
+};
 
 export const useAvailableModels = () => {
   const [availableModels, setAvailableModels] = useState([]);
