@@ -1,0 +1,36 @@
+{
+  "name": "3d-gaussian-splats-viewer",
+  "version": "1.0.0",
+  "description": "A React web application to view 3D Gaussian Splatting results",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "vite preview --port 3000"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mkkellogg/gaussian-splats-3d": "^0.4.7",
+    "@mui/icons-material": "^7.2.0",
+    "@mui/material": "^7.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "3d",
+    "gaussian-splats",
+    "viewer",
+    "webgl",
+    "react"
+  ],
+  "author": "",
+  "license": "MIT"
+}
