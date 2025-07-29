@@ -9,7 +9,7 @@ export default defineConfig({
       "/models": {
         target: "https://d7yb14d27s1sv.cloudfront.net",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/models/, "/aws-models"),
+        rewrite: (path) => path.replace(/^\/models/, "/models"),
       },
     },
     port: 3000,
@@ -23,4 +23,14 @@ export default defineConfig({
     include: ["@mkkellogg/gaussian-splats-3d"],
   },
   publicDir: "public",
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom"],
+          "three-vendor": ["three", "@mkkellogg/gaussian-splats-3d"],
+        },
+      },
+    },
+  },
 });

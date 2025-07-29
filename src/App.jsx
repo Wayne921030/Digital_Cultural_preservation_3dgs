@@ -1,9 +1,9 @@
-import React, { useRef } from 'react'
+import React, { useRef, Suspense, lazy } from 'react'
 import { ThemeProvider, CssBaseline, Box } from '@mui/material'
 import theme from './theme'
 import Header from './components/Header'
 import Controls from './components/Controls'
-import Viewer from './components/Viewer'
+const Viewer = lazy(() => import('./components/Viewer'))
 import ModelSelector from './components/ModelSelector'
 import LoadingScreen from './components/LoadingScreen'
 import { useAppSettings, useAvailableModels } from './hooks'
@@ -70,18 +70,20 @@ function App() {
               onResetModelSelection={resetModelSelection}
               modelConfigs={modelConfigs}
             />
-            <Viewer 
-              settings={settings}
-              onResetCamera={resetCameraRef}
-              onToggleAutoRotate={toggleAutoRotate}
-              isAutoRotating={isAutoRotating}
-              selectedModel={selectedModel}
-              modelSelected={modelSelected}
-              modelConfigs={modelConfigs}
-              ref={viewerRef}
-              onServerStatusChange={setServerStatus}
-              onErrorChange={setError}
-            />
+            <Suspense fallback={<div>Loading Viewer...</div>}>
+              <Viewer 
+                settings={settings}
+                onResetCamera={resetCameraRef}
+                onToggleAutoRotate={toggleAutoRotate}
+                isAutoRotating={isAutoRotating}
+                selectedModel={selectedModel}
+                modelSelected={modelSelected}
+                modelConfigs={modelConfigs}
+                ref={viewerRef}
+                onServerStatusChange={setServerStatus}
+                onErrorChange={setError}
+              />
+            </Suspense>
           </>
         )}
       </Box>
