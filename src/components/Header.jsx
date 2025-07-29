@@ -12,7 +12,7 @@ function Header() {
       }}
     >
       <Typography variant="h1" sx={{ marginBottom: 1, color: '#FFFFFF' }}>
-        3D Gaussian Splats Viewer
+        Digital Cultural Preservation 3DGS
       </Typography>
       <Typography variant="body1" sx={{ opacity: 0.9, color: '#FFFFFF' }}>
         Interactive 3D visualization of Gaussian Splatting results
