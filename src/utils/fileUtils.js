@@ -4,13 +4,13 @@ import { FILE_TYPES, SUPPORTED_FORMATS } from "../constants/index.js";
 
 /**
  * Check if a file is a supported 3D format
- * @param {File} file - The file to check
+ * @param {string} filename - The filename to check
  * @returns {boolean} - True if the file is supported
  */
-export const isSupportedFile = (file) => {
-  if (!file) return false;
+export const isSupportedFile = (filename) => {
+  if (!filename) return false;
 
-  const extension = getFileExtension(file.name);
+  const extension = getFileExtension(filename);
   return SUPPORTED_FORMATS.includes(extension.toLowerCase());
 };
 
@@ -36,7 +36,7 @@ export const formatFileSize = (bytes) => {
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 };
 
 /**
@@ -85,4 +85,20 @@ export const getFileTypeCategory = (filename) => {
     default:
       return "Unknown";
   }
+};
+
+// Get the best file type for the scene (prioritize .splat over .ply)
+export const getBestFileType = (fileTypes) => {
+  // First try to find .splat files
+  const splatFileType = fileTypes.find((ft) => ft.type === ".splat");
+  if (splatFileType && splatFileType.bestResolution) {
+    return splatFileType;
+  }
+  // If no .splat, try .ply files
+  const plyFileType = fileTypes.find((ft) => ft.type === ".ply");
+  if (plyFileType && plyFileType.bestResolution) {
+    return plyFileType;
+  }
+  // If neither found, return the first available
+  return fileTypes.find((ft) => ft.bestResolution);
 };

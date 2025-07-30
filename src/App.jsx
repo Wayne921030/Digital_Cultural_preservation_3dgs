@@ -4,7 +4,8 @@ import theme from './theme'
 import Header from './components/Header'
 import Controls from './components/Controls'
 const Viewer = lazy(() => import('./components/Viewer'))
-import ModelSelector from './components/ModelSelector'
+import DeviceSelector from './components/DeviceSelector'
+import SceneSelector from './components/SceneSelector'
 import LoadingScreen from './components/LoadingScreen'
 import { useAppSettings, useAvailableModels } from './hooks'
 
@@ -13,17 +14,24 @@ function App() {
   const { 
     settings, 
     isAutoRotating, 
-    selectedModel, 
-    modelSelected,
+    selectedDevice, 
+    selectedScene,
+    selectedFileType,
+    selectedResolution,
+    deviceSelected,
+    sceneSelected,
     updateSettings, 
     toggleAutoRotate, 
-    updateSelectedModel,
-    resetModelSelection
+    updateSelectedDevice,
+    updateSceneSelection,
+    resetDeviceSelection,
+    resetSceneSelection
   } = useAppSettings()
 
   // Use custom Hook to check available models
   const { 
-    modelConfigs, 
+    scenes, 
+    deviceConfigs, 
     isLoading: modelsLoading, 
     error: modelsError,
     refreshModels
@@ -31,8 +39,6 @@ function App() {
   
   const resetCameraRef = useRef(null)
   const viewerRef = useRef(null)
-  const [serverStatus, setServerStatus] = React.useState('checking')
-  const [error, setError] = React.useState(null)
 
   return (
     <ThemeProvider theme={theme}>
@@ -51,11 +57,19 @@ function App() {
         
         {modelsLoading ? (
           <LoadingScreen isLoading={modelsLoading} error={modelsError} onRetry={refreshModels} />
-        ) : !modelSelected ? (
-          <ModelSelector 
-            onModelSelect={updateSelectedModel}
-            selectedModel={selectedModel}
-            modelConfigs={modelConfigs}
+        ) : !deviceSelected ? (
+          <DeviceSelector 
+            deviceConfigs={deviceConfigs}
+            onDeviceSelect={updateSelectedDevice}
+            selectedDevice={selectedDevice}
+          />
+        ) : !sceneSelected ? (
+          <SceneSelector 
+            scenes={scenes}
+            selectedDevice={selectedDevice}
+            onSceneSelect={updateSceneSelection}
+            onBackToDeviceSelection={resetDeviceSelection}
+            selectedScene={selectedScene}
           />
         ) : (
           <>
@@ -65,23 +79,20 @@ function App() {
               onResetCamera={() => resetCameraRef.current?.()}
               onToggleAutoRotate={toggleAutoRotate}
               isAutoRotating={isAutoRotating}
-              selectedModel={selectedModel}
-              onModelChange={updateSelectedModel}
-              onResetModelSelection={resetModelSelection}
-              modelConfigs={modelConfigs}
+              selectedScene={selectedScene}
+              selectedResolution={selectedResolution}
+              selectedDevice={selectedDevice}
+              onResetSceneSelection={resetSceneSelection}
             />
             <Suspense fallback={<div>Loading Viewer...</div>}>
               <Viewer 
                 settings={settings}
                 onResetCamera={resetCameraRef}
-                onToggleAutoRotate={toggleAutoRotate}
                 isAutoRotating={isAutoRotating}
-                selectedModel={selectedModel}
-                modelSelected={modelSelected}
-                modelConfigs={modelConfigs}
+                selectedResolution={selectedResolution}
+                sceneSelected={sceneSelected}
                 ref={viewerRef}
-                onServerStatusChange={setServerStatus}
-                onErrorChange={setError}
+                
               />
             </Suspense>
           </>

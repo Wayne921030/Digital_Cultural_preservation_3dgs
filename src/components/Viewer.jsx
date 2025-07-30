@@ -1,39 +1,31 @@
-import React, { forwardRef, useImperativeHandle } from 'react'
+import React, { forwardRef } from 'react'
 import { Paper, Box, Typography, CircularProgress } from '@mui/material'
-import InfoPanel from './InfoPanel'
 import { useViewer, useAutoRotate } from '../hooks'
 
-const Viewer = forwardRef(({ settings, onResetCamera, onToggleAutoRotate, isAutoRotating, selectedModel, modelSelected, modelConfigs, onServerStatusChange, onErrorChange }, ref) => {
+const Viewer = forwardRef(({ 
+  settings, 
+  onResetCamera, 
+  isAutoRotating,
+  selectedResolution, 
+  sceneSelected
+}, ref) => {
+  
   // Use custom Hooks to manage core logic
-  const { isLoading, error, serverStatus, viewerRef, viewerInstanceRef, resetCamera } = useViewer(settings, selectedModel, modelSelected, modelConfigs)
+  const { isLoading, error, viewerRef, viewerInstanceRef, resetCamera } = useViewer(
+    settings, 
+    selectedResolution, 
+    sceneSelected
+  )
   
   // Use auto-rotation Hook
   useAutoRotate(viewerInstanceRef.current, isAutoRotating)
 
-  // Expose methods to parent component
-  useImperativeHandle(ref, () => ({
-    getViewerInstance: () => viewerInstanceRef.current
-  }))
-
   // Set up reset camera callback
   React.useEffect(() => {
-    if (viewerInstanceRef.current) {
+    if (onResetCamera && resetCamera && viewerInstanceRef.current) {
       onResetCamera.current = resetCamera
     }
-  }, [onResetCamera, resetCamera, viewerInstanceRef])
-
-  // Update parent component with server status and error
-  React.useEffect(() => {
-    if (onServerStatusChange) {
-      onServerStatusChange(serverStatus)
-    }
-  }, [serverStatus, onServerStatusChange])
-
-  React.useEffect(() => {
-    if (onErrorChange) {
-      onErrorChange(error)
-    }
-  }, [error, onErrorChange])
+  }, [onResetCamera, resetCamera, viewerInstanceRef.current])
 
   return (
     <Paper 
@@ -67,7 +59,6 @@ const Viewer = forwardRef(({ settings, onResetCamera, onToggleAutoRotate, isAuto
           zIndex: 20,
         }}
       >
-        <InfoPanel serverStatus={serverStatus} error={error} />
       </Box>
       
       {isLoading && (

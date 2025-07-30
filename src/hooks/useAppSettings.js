@@ -9,8 +9,12 @@ export const useAppSettings = () => {
     antialiased: false,
   });
   const [isAutoRotating, setIsAutoRotating] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("smartphone");
-  const [modelSelected, setModelSelected] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [selectedScene, setSelectedScene] = useState(null);
+  const [selectedFileType, setSelectedFileType] = useState(null);
+  const [selectedResolution, setSelectedResolution] = useState(null);
+  const [deviceSelected, setDeviceSelected] = useState(false);
+  const [sceneSelected, setSceneSelected] = useState(false);
 
   const updateSettings = useCallback((newSettings) => {
     console.log("App: Settings changed:", newSettings);
@@ -21,26 +25,55 @@ export const useAppSettings = () => {
     setIsAutoRotating((prev) => !prev);
   }, []);
 
-  const updateSelectedModel = useCallback((model, confirmed = false) => {
-    console.log("App: Model changed:", model);
-    setSelectedModel(model);
-    if (confirmed) {
-      setModelSelected(true);
-    }
+  const updateSelectedDevice = useCallback((device) => {
+    console.log("App: Device selected:", device);
+    setSelectedDevice(device);
+    setDeviceSelected(true);
+    // Reset scene selection when device changes
+    setSceneSelected(false);
+    setSelectedScene(null);
+    setSelectedFileType(null);
+    setSelectedResolution(null);
   }, []);
 
-  const resetModelSelection = useCallback(() => {
-    setModelSelected(false);
+  const updateSceneSelection = useCallback((scene, fileType, resolution) => {
+    console.log("App: Scene selected:", { scene, fileType, resolution });
+    setSelectedScene(scene);
+    setSelectedFileType(fileType);
+    setSelectedResolution(resolution);
+    setSceneSelected(true);
+  }, []);
+
+  const resetDeviceSelection = useCallback(() => {
+    setDeviceSelected(false);
+    setSelectedDevice(null);
+    setSceneSelected(false);
+    setSelectedScene(null);
+    setSelectedFileType(null);
+    setSelectedResolution(null);
+  }, []);
+
+  const resetSceneSelection = useCallback(() => {
+    setSceneSelected(false);
+    setSelectedScene(null);
+    setSelectedFileType(null);
+    setSelectedResolution(null);
   }, []);
 
   return {
     settings,
     isAutoRotating,
-    selectedModel,
-    modelSelected,
+    selectedDevice,
+    selectedScene,
+    selectedFileType,
+    selectedResolution,
+    deviceSelected,
+    sceneSelected,
     updateSettings,
     toggleAutoRotate,
-    updateSelectedModel,
-    resetModelSelection,
+    updateSelectedDevice,
+    updateSceneSelection,
+    resetDeviceSelection,
+    resetSceneSelection,
   };
 };

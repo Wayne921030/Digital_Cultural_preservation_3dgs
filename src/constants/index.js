@@ -47,20 +47,17 @@ export const THEME = {
   TEXT_SECONDARY: "#b3b3b3",
 };
 
-// Model configurations for different device types
-export const MODEL_CONFIGS = {
+// Device type configurations for different performance levels
+export const DEVICE_CONFIGS = {
   smartphone: {
     name: "Smartphone",
-    splat: "Rooftop_Drone_lod_25.splat",
-    ply: "Rooftop_Drone_lod_25.ply",
     description: "Optimized for mobile devices with limited GPU",
     quality: "low",
     features: ["Low resolution", "Fast loading", "Battery optimized"],
+    recommendedResolutions: ["low"],
   },
   laptopWeak: {
     name: "Laptop (Weak GPU)",
-    splat: "Rooftop_Drone_lod_50.splat",
-    ply: "Rooftop_Drone_lod_50.ply",
     description: "For laptops with integrated graphics",
     quality: "medium",
     features: [
@@ -68,11 +65,10 @@ export const MODEL_CONFIGS = {
       "Balanced performance",
       "Integrated GPU optimized",
     ],
+    recommendedResolutions: ["low", "medium"],
   },
   laptopStrong: {
     name: "Laptop (Strong GPU)",
-    splat: "Rooftop_Drone_lod_75.splat",
-    ply: "Rooftop_Drone_lod_75.ply",
     description: "For laptops with dedicated graphics cards",
     quality: "high",
     features: [
@@ -80,11 +76,10 @@ export const MODEL_CONFIGS = {
       "Good performance",
       "Dedicated GPU optimized",
     ],
+    recommendedResolutions: ["medium", "high"],
   },
   desktopStrong: {
     name: "Desktop (Strong GPU)",
-    splat: "Rooftop_Drone_full.splat",
-    ply: "Rooftop_Drone_full.ply",
     description: "For high-end desktop systems",
     quality: "ultra",
     features: [
@@ -92,25 +87,30 @@ export const MODEL_CONFIGS = {
       "Maximum quality",
       "High-end GPU optimized",
     ],
+    recommendedResolutions: ["high", "full"],
   },
 };
 
-// Available model files mapping
-export const MODEL_FILES = {
-  smartphone: {
-    splat: "Rooftop_Drone_lod_25.splat",
-    ply: "Rooftop_Drone_lod_25.ply",
+// Resolution quality mapping
+export const RESOLUTION_QUALITY = {
+  low: {
+    name: "Low",
+    description: "Fast loading, optimized for mobile",
+    icon: "📱",
   },
-  laptopWeak: {
-    splat: "Rooftop_Drone_lod_50.splat",
-    ply: "Rooftop_Drone_lod_50.ply",
+  medium: {
+    name: "Medium",
+    description: "Balanced quality and performance",
+    icon: "💻",
   },
-  laptopStrong: {
-    splat: "Rooftop_Drone_lod_75.splat",
-    ply: "Rooftop_Drone_lod_75.ply",
+  high: {
+    name: "High",
+    description: "High quality for strong GPUs",
+    icon: "🖥️",
   },
-  desktopStrong: {
-    splat: "Rooftop_Drone_full.splat",
-    ply: "Rooftop_Drone_full.ply",
+  full: {
+    name: "Full",
+    description: "Maximum quality",
+    icon: "🚀",
   },
 };

@@ -7,27 +7,40 @@ import {
   Grid, 
   Box,
   FormControl,
-  FormLabel,
   Switch,
   FormControlLabel,
   Collapse,
-  IconButton
+  IconButton,
 } from '@mui/material'
 import { Refresh as RefreshIcon, ExpandMore } from '@mui/icons-material'
+import { DEVICE_CONFIGS } from '../constants'
+import { formatFileSize } from '../utils/fileUtils'
 
-function Controls({ settings, onSettingsChange, onResetCamera, onToggleAutoRotate, isAutoRotating, selectedModel, onModelChange, onResetModelSelection, modelConfigs }) {
+function Controls({ 
+  settings, 
+  onSettingsChange, 
+  onResetCamera, 
+  onToggleAutoRotate, 
+  isAutoRotating, 
+  selectedScene, 
+  selectedResolution, 
+  selectedDevice,
+  onResetSceneSelection 
+}) {
   const [showAdvanced, setShowAdvanced] = React.useState(false)
   const [alphaValue, setAlphaValue] = React.useState(settings.alphaThreshold)
+  
   const handleSettingChange = (setting, value) => {
     const newSettings = { ...settings, [setting]: value }
     onSettingsChange(newSettings)
   }
+  
   // Keep alphaValue in sync if settings.alphaThreshold changes from outside
   React.useEffect(() => {
     setAlphaValue(settings.alphaThreshold)
   }, [settings.alphaThreshold])
 
-  const currentModel = modelConfigs[selectedModel]
+  const deviceConfig = DEVICE_CONFIGS[selectedDevice]
 
   return (
     <Paper 
@@ -51,18 +64,15 @@ function Controls({ settings, onSettingsChange, onResetCamera, onToggleAutoRotat
         }}
       >
         <Typography variant="h6" sx={{ marginBottom: 1, color: '#FFFFFF' }}>
-          Current Model: {currentModel?.primaryFile || 'Unknown'}
+          Current Scene: {selectedScene?.scene_name?.replace(/_/g, ' ') || 'Unknown'}
         </Typography>
-        <Typography variant="body2" sx={{ color: '#FFFFFF', opacity: 0.9 }}>
-          Selected Device: {currentModel?.name || 'Unknown'}
+        <Typography variant="body2" sx={{ color: '#FFFFFF', opacity: 0.9, marginBottom: 1 }}>
+          Device: {deviceConfig?.name || 'Unknown'}
         </Typography>
-        {currentModel && (
+        {selectedResolution && (
           <>
             <Typography variant="body2" sx={{ color: '#FFFFFF', opacity: 0.8, fontSize: '0.8rem' }}>
-              {currentModel.availableSplat ? 'Using .splat format' : 'Using .ply format'}
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#FFFFFF', opacity: 0.7, fontSize: '0.7rem' }}>
-              File Size: {currentModel.primaryFileSize?.toFixed(1)} MB
+              File: {selectedResolution.filename} • Size: {formatFileSize(selectedResolution.size)}
             </Typography>
           </>
         )}
@@ -140,11 +150,11 @@ function Controls({ settings, onSettingsChange, onResetCamera, onToggleAutoRotat
         </Button>
         <Button 
           variant="outlined"
-          onClick={onResetModelSelection}
+          onClick={onResetSceneSelection}
           startIcon={<RefreshIcon />}
           sx={{ minWidth: 150 }}
         >
-          Change Model
+          Change Scene
         </Button>
       </Box>
     </Paper>

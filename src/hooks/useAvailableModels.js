@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { MODEL_CONFIGS } from "../constants";
+import { DEVICE_CONFIGS } from "../constants";
 
 // Fetch available models from server
 const fetchAvailableModels = async () => {
@@ -38,13 +38,13 @@ const fetchAvailableModels = async () => {
 };
 
 export const useAvailableModels = () => {
-  const [availableModels, setAvailableModels] = useState([]);
+  const [scenes, setScenes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [modelConfigs, setModelConfigs] = useState({});
+  const [deviceConfigs, setDeviceConfigs] = useState({});
 
-  // Use the imported model configurations
-  const desiredModels = MODEL_CONFIGS;
+  // Use the imported device configurations
+  const desiredDeviceConfigs = DEVICE_CONFIGS;
 
   // Check which models are available
   const checkAvailableModels = useCallback(async () => {
@@ -55,104 +55,51 @@ export const useAvailableModels = () => {
       // Fetch all available models from server
       const serverResponse = await fetchAvailableModels();
 
-      // Handle different response formats
-      let serverModels = [];
+      // Handle the new structure with scenes
+      if (
+        serverResponse &&
+        serverResponse.success &&
+        Array.isArray(serverResponse.scenes)
+      ) {
+        setScenes(serverResponse.scenes);
 
-      if (Array.isArray(serverResponse)) {
-        // Check if it's an array of file objects (like the actual response)
-        if (
-          serverResponse.length > 0 &&
-          typeof serverResponse[0] === "object" &&
-          serverResponse[0].filename
-        ) {
-          // Use the file objects directly
-          serverModels = serverResponse;
-        } else {
-          // Assume it's a simple array of filenames
-          serverModels = serverResponse.map((filename) => ({
-            filename,
-            extension: filename.split(".").pop(),
-          }));
-        }
-      } else if (serverResponse && typeof serverResponse === "object") {
-        // If response is an object, try to extract models array
-        if (Array.isArray(serverResponse.models)) {
-          serverModels = serverResponse.models;
-        } else if (Array.isArray(serverResponse.files)) {
-          serverModels = serverResponse.files;
-        } else {
-          // If it's an object with file names as keys, convert to array
-          serverModels = Object.keys(serverResponse).map((filename) => ({
-            filename,
-            extension: filename.split(".").pop(),
-          }));
-        }
-      } else if (typeof serverResponse === "string") {
-        // If response is a string, try to parse it
-        try {
-          const parsed = JSON.parse(serverResponse);
-          if (Array.isArray(parsed)) {
-            serverModels = parsed;
-          } else {
-            serverModels = Object.keys(parsed).map((filename) => ({
-              filename,
-              extension: filename.split(".").pop(),
-            }));
-          }
-        } catch (parseError) {
-          console.warn("Failed to parse server response as JSON:", parseError);
-          serverModels = [];
-        }
-      }
+        // Process device configurations based on available scenes
+        const availableDeviceConfigs = {};
 
-      // Check which of our desired models are available
-      const availableConfigs = {};
-
-      for (const [key, config] of Object.entries(desiredModels)) {
-        // Check if we have .splat files for this model
-        const hasSplat = serverModels.some(
-          (file) =>
-            file.filename === config.splat && file.extension === ".splat"
-        );
-
-        // Check if we have .ply files for this model
-        const hasPly = config.ply
-          ? serverModels.some(
-              (file) =>
-                file.filename === config.ply && file.extension === ".ply"
+        for (const [deviceKey, deviceConfig] of Object.entries(
+          desiredDeviceConfigs
+        )) {
+          // Check if any scene has files that match the device's recommended resolutions
+          const hasCompatibleFiles = serverResponse.scenes.some((scene) =>
+            scene.file_types.some((fileType) =>
+              fileType.resolutions.some((resolution) =>
+                deviceConfig.recommendedResolutions.includes(
+                  resolution.resolution
+                )
+              )
             )
-          : false;
+          );
 
-        if (hasSplat || hasPly) {
-          const splatDetails = hasSplat
-            ? serverModels.find((file) => file.filename === config.splat)
-            : null;
-          const plyDetails = hasPly
-            ? serverModels.find((file) => file.filename === config.ply)
-            : null;
-
-          availableConfigs[key] = {
-            ...config,
-            availableSplat: hasSplat,
-            availablePly: hasPly,
-            primaryFile: hasSplat ? config.splat : config.ply,
-            fallbackFile: hasSplat && hasPly ? config.ply : null,
-            splatDetails: splatDetails,
-            plyDetails: plyDetails,
-            // Add file size information
-            primaryFileSize: hasSplat
-              ? splatDetails?.size_mb
-              : plyDetails?.size_mb,
-            fallbackFileSize: hasSplat && hasPly ? plyDetails?.size_mb : null,
-          };
+          if (hasCompatibleFiles) {
+            availableDeviceConfigs[deviceKey] = {
+              ...deviceConfig,
+              available: true,
+            };
+          }
         }
-      }
 
-      setAvailableModels(serverModels);
-      setModelConfigs(availableConfigs);
+        setDeviceConfigs(availableDeviceConfigs);
+      } else {
+        // Fallback for old structure or error
+        console.warn("Unexpected server response format:", serverResponse);
+        setScenes([]);
+        setDeviceConfigs({});
+      }
     } catch (err) {
       console.error("Error checking available models:", err);
       setError(err.message);
+      setScenes([]);
+      setDeviceConfigs({});
     } finally {
       setIsLoading(false);
     }
@@ -164,8 +111,8 @@ export const useAvailableModels = () => {
   }, [checkAvailableModels]);
 
   return {
-    availableModels,
-    modelConfigs,
+    scenes,
+    deviceConfigs,
     isLoading,
     error,
     refreshModels: checkAvailableModels,
