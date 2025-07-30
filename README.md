@@ -1,28 +1,39 @@
-# 3D Gaussian Splats Viewer
+# Digital Cultural Preservation - 3D Gaussian Splats Viewer
 
-## Features
+![Digital Cultural Preservation 3DGS Interface](./docs/demo.jpeg)
+A modern web application for interactive viewing of 3D Gaussian Splatting models in digital cultural preservation projects. This platform enables users to explore high-quality 3D reconstructions of cultural heritage sites and artifacts with device-optimized performance.
 
-- 🎨 **Modern React UI**: Beautiful, responsive design with Material-UI components and custom theming
-- 📁 **File Upload**: Drag and drop or click to upload your 3D model files
-- 🌐 **Remote Loading**: Load models from remote servers via HTTP API
-- ⚙️ **Real-time Controls**: Adjust alpha threshold and scale parameters on the fly
-- 🎥 **Camera Controls**: Reset camera position and toggle auto-rotation
-- 📱 **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
-- 🚀 **Fast Loading**: Optimized for smooth performance with large 3D models
+🌐 **Live Demo**: [https://d7yb14d27s1sv.cloudfront.net/index.html](https://d7yb14d27s1sv.cloudfront.net/index.html)
 
-## Supported File Formats
+## 🎯 Overview
 
-- `.ply` - Point cloud files
-- `.ksplat` - K-Planes splat format
-- `.splat` - Gaussian splat format
+This application serves as a digital preservation platform that allows users to interactively explore 3D reconstructions of cultural heritage sites. The system automatically optimizes the viewing experience based on the user's device capabilities.
 
-## Installation
+## 🚀 Features
 
-1. **Clone or download this repository**
+- **🏛️ Cultural Site Exploration**: Interactive 3D viewing of heritage sites and artifacts
+- **📱 Universal Accessibility**: Optimized for all devices from smartphones to high-end workstations
+- **🎨 High-Fidelity Rendering**: Preserve visual quality of cultural artifacts
+- **🔄 Interactive Preservation**: Real-time interaction with 3D cultural reconstructions
+- **🎯 Device-Optimized Performance**: Smart resolution selection based on device capabilities
+- **⚡ Fast Loading**: Optimized for large 3D cultural heritage models
+- **🌐 Cloud-Based Delivery**: CDN-powered model distribution for global access
+
+## 🛠️ Installation
+
+### Prerequisites
+
+- Node.js 16+
+- npm or yarn
+
+### Quick Start
+
+1. **Clone the repository**
 
    ```bash
    git clone <repository-url>
-   cd 3dgs-viwer
+   git checkout 3dgs-frontend
+   cd 3dgs-frontend
    ```
 
 2. **Install dependencies**
@@ -31,87 +42,202 @@
    npm install
    ```
 
-3. **Start the development server**
+3. **Start development server**
 
    ```bash
    npm run dev
    ```
 
 4. **Open your browser**
-   Navigate to `http://localhost:5173` (Vite's default port)
-
-## Remote Model Loading
-
-The application can load models from a remote server. To use this feature, create a server that provides these endpoints:
-
-- `GET /api/models` - List available models (returns JSON array)
-- `GET /api/download/<filename>` - Download model file (returns binary data)
-
-The server should run on `http://127.0.0.1:8000` or update the `API_BASE_URL` in `src/services/api.js`.
-
-## Usage
-
-### Basic Usage
-
-1. **Upload a 3D Model**: Click the "Choose 3D Model File" button and select your `.ply`, `.ksplat`, or `.splat` file
-2. **Adjust Settings**: Use the sliders to modify:
-   - **Alpha Removal Threshold**: Controls transparency filtering (0-10)
-   - **Scale X/Y/Z**: Adjust model size on each axis (0.1-3.0)
-3. **Camera Controls**:
-   - **Mouse**: Click and drag to rotate, scroll to zoom, right-click to pan
-   - **Reset Camera**: Return to the initial camera position
-   - **Auto-Rotate**: Toggle automatic camera rotation around the model
-
-## Development
-
-### Project Structure
-
-```
-├── index.html              # Main HTML file
-├── src/
-│   ├── App.jsx            # Main React application component
-│   ├── main.jsx           # React entry point
-│   ├── theme.js           # Material-UI theme configuration
-│   ├── components/        # React components
-│   │   ├── Header.jsx     # Application header
-│   │   ├── Controls.jsx   # Control panel component
-│   │   ├── Viewer.jsx     # 3D viewer component
-│   │   └── InfoPanel.jsx  # Information panel
-│   ├── hooks/             # Custom React hooks
-│   ├── services/          # API services
-│   ├── utils/             # Utility functions
-│   ├── constants/         # Application constants
-│   └── assets/            # Static assets
-├── package.json           # Dependencies and scripts
-├── vite.config.js         # Vite configuration
-└── README.md              # This file
-```
+   Navigate to `http://localhost:3000`
 
 ### Available Scripts
 
-- `npm run dev` - Start development server
+- `npm run dev` - Start development server on port 3000
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run serve` - Serve production build on port 3000
 
-### Customization
+## 🎮 User Scenario
 
-You can easily customize the viewer by modifying:
+### Step 1: Device Selection
 
-- **Theme**: Edit the Material-UI theme in `src/theme.js`
-- **Components**: Modify React components in `src/components/`
-- **Hooks**: Customize state management in `src/hooks/`
-- **API Configuration**: Update server endpoints in `src/services/api.js`
+Choose your device type for optimal cultural heritage viewing:
 
-## Technical Details
+- **📱 Smartphone**: Low resolution, battery optimized for mobile exploration
+- **💻 Laptop (Weak GPU)**: Medium resolution for integrated graphics
+- **🖥️ Laptop (Strong GPU)**: High resolution for dedicated graphics
+- **🚀 Desktop (Strong GPU)**: Ultra high resolution for maximum detail preservation
 
-### Dependencies
+### Step 2: Cultural Site Selection
 
-- **React 18**: Modern React with hooks and functional components
-- **Material-UI**: Beautiful UI components and theming system
-- **@mkkellogg/gaussian-splats-3d**: Core 3D rendering library
-- **Vite**: Fast build tool and development server
-- **Emotion**: CSS-in-JS styling solution
+Browse available cultural heritage sites and artifacts:
+
+- **Preview Images**: Visual previews of cultural sites
+- **File Information**: Model size and format details
+- **Quality Options**: Automatic resolution selection based on device
+- **Cultural Context**: Information about each heritage site
+
+### Step 3: Interactive Exploration
+
+Explore 3D cultural reconstructions:
+
+- **Mouse Navigation**: Click and drag to rotate, scroll to zoom, right-click to pan
+- **Camera Controls**: Reset camera position and auto-rotation
+- **Quality Settings**: Adjust alpha threshold and antialiasing for optimal viewing
+- **Scene Management**: Switch between different cultural sites
+
+## 🔧 Configuration
+
+### Model Delivery
+
+Models are served from a CDN optimized for cultural preservation:
+
+- **Model Discovery**: `GET /models/models.json` - Available cultural sites
+- **Model Download**: `GET /models/{filename}` - Cultural heritage models
+- **CDN Location**: `https://<ACCOUNT_ID>.cloudfront.net`
+
+### Adding New Scenes to S3
+
+To add new cultural heritage scenes to the platform:
+
+1. **Upload Model Files to S3**
+
+   - Upload your 3D model files to the S3 bucket
+   - Use descriptive filenames: `SceneName_resolution.format`
+   - Example: `Example_Scene_1_low.splat`, `Example_Scene_1_medium.ply`
+
+2. **Update models.json Structure**
+   The `models.json` file must follow this structure:
+
+<details>
+<summary><strong>📋 Click to view models.json structure</strong></summary>
+
+```json
+{
+  "total_count": 2,
+  "scenes": [
+    {
+      "scene_name": "Example_Scene_1",
+      "file_types": [
+        {
+          "type": ".splat",
+          "resolutions": [
+            {
+              "resolution": "low",
+              "filename": "Example_Scene_1_low.splat",
+              "size": 16805728,
+              "size_mb": 16.03
+            },
+            {
+              "resolution": "medium",
+              "filename": "Example_Scene_1_medium.splat",
+              "size": 33611456,
+              "size_mb": 32.06
+            },
+            {
+              "resolution": "high",
+              "filename": "Example_Scene_1_high.splat",
+              "size": 67222912,
+              "size_mb": 64.11
+            },
+            {
+              "resolution": "full",
+              "filename": "Example_Scene_1_full.splat",
+              "size": 134445824,
+              "size_mb": 128.22
+            }
+          ],
+          "count": 4
+        },
+        {
+          "type": ".ply",
+          "resolutions": [
+            {
+              "resolution": "low",
+              "filename": "Example_Scene_1_low.ply",
+              "size": 130245923,
+              "size_mb": 124.21
+            },
+            {
+              "resolution": "medium",
+              "filename": "Example_Scene_1_medium.ply",
+              "size": 260490316,
+              "size_mb": 248.42
+            },
+            {
+              "resolution": "high",
+              "filename": "Example_Scene_1_high.ply",
+              "size": 390734708,
+              "size_mb": 372.63
+            }
+          ],
+          "count": 3
+        }
+      ],
+      "count": 7
+    },
+    {
+      "scene_name": "Example_Scene_2",
+      "file_types": [
+        {
+          "type": ".splat",
+          "resolutions": [
+            {
+              "resolution": "low",
+              "filename": "Example_Scene_2_low.splat",
+              "size": 8402864,
+              "size_mb": 8.01
+            },
+            {
+              "resolution": "full",
+              "filename": "Example_Scene_2_full.splat",
+              "size": 33611456,
+              "size_mb": 32.06
+            }
+          ],
+          "count": 2
+        }
+      ],
+      "count": 2
+    }
+  ],
+  "success": true
+}
+```
+
+**Required Fields:**
+
+- `scene_name`: Unique identifier for the cultural site
+- `file_types`: Array of supported formats (`.splat`, `.ply`, etc.)
+- `resolutions`: Available quality levels (`low`, `medium`, `high`, `full`)
+- `filename`: Exact filename in S3 bucket
+- `size`: File size in bytes
+- `size_mb`: File size in megabytes
+- `count`: Number of files in each category
+
+**Resolution Guidelines:**
+
+- `low`: ~100-200MB, optimized for mobile devices
+- `medium`: ~200-400MB, balanced quality and performance
+- `high`: ~400-800MB, high quality for strong GPUs
+- `full`: ~800MB+, maximum quality for desktop systems
+
+</details>
+
+### Supported Formats
+
+- `.splat` - Gaussian splat format (preferred for cultural artifacts)
+- `.ply` - Point cloud files for archaeological sites
+
+## 🔧 Technical Details
+
+### Core Dependencies
+
+- **React 18** - Modern React with hooks for cultural heritage applications
+- **Material-UI 7** - Beautiful UI components for cultural site browsing
+- **@mkkellogg/gaussian-splats-3d** - High-quality 3D rendering for cultural artifacts
+- **Vite** - Fast build tool for cultural heritage web applications
 
 ### Browser Support
 
@@ -119,3 +245,10 @@ You can easily customize the viewer by modifying:
 - Firefox 88+
 - Safari 14+
 - Edge 90+
+
+## Acknowledgments
+
+- [@mkkellogg/gaussian-splats-3d](https://github.com/mkkellogg/GaussianSplats3D) - Core 3D rendering for cultural heritage
+- [Material-UI](https://mui.com/) - UI components for cultural site browsing
+- [Vite](https://vitejs.dev/) - Fast development for cultural heritage applications
+- Cultural heritage institutions and preservation organizations worldwide
