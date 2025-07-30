@@ -86,7 +86,7 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
   const getSceneImage = (sceneName) => {
     switch (sceneName) {
       case 'Rooftop_Drone':
-        return '/src/assets/Rooftop_Drone_full-image.png'
+        return '/Rooftop_Drone_full-image.png'
       // case 'Main_entrance':
       //   return '/src/assets/Main_entrance-image.png' // You can add this image later
       default:
