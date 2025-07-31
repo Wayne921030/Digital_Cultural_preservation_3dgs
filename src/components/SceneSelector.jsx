@@ -51,33 +51,18 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
   const deviceConfig = DEVICE_CONFIGS[selectedDevice]
   const recommendedResolutions = deviceConfig?.recommendedResolutions || []
 
-  // Get the best resolution for the device (first recommended resolution)
-  const getBestResolution = (resolutions, deviceResolutions) => {
-    // First try to find the first recommended resolution
-    for (const recommended of deviceResolutions) {
-      const found = resolutions.find(r => r.resolution === recommended)
-      if (found) return found
-    }
-    // If no recommended resolution found, return the first available
-    return resolutions[0]
-  }
-
   // Filter scenes and get the best file type and resolution for each scene
   const getScenesWithBestOptions = (scenes, deviceResolutions) => {
-    return scenes.map(scene => ({
-      ...scene,
-      file_types: scene.file_types.map(fileType => {
-        const bestResolution = getBestResolution(fileType.resolutions, deviceResolutions)
-        return {
-          ...fileType,
-          bestResolution: bestResolution
-        }
-      }).filter(fileType => fileType.bestResolution),
-      bestFileType: null // Will be set below
-    })).map(scene => ({
-      ...scene,
-      bestFileType: getBestFileType(scene.file_types)
-    })).filter(scene => scene.bestFileType)
+    return scenes.map(scene => {
+      const bestOptions = getBestFileType(scene, deviceResolutions);
+      if (!bestOptions) return null;
+      
+      return {
+        ...scene,
+        bestFileType: bestOptions.bestFileType,
+        bestResolution: bestOptions.bestResolution
+      };
+    }).filter(scene => scene !== null);
   }
 
   const scenesWithBestOptions = getScenesWithBestOptions(scenes, recommendedResolutions)
@@ -86,9 +71,13 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
   const getSceneImage = (sceneName) => {
     switch (sceneName) {
       case 'Rooftop_Drone':
-        return '/Rooftop_Drone_full-image.png'
-      // case 'Main_entrance':
-      //   return '/src/assets/Main_entrance-image.png' // You can add this image later
+        return 'Rooftop_Drone.png'
+      case 'Foo_dog':
+        return 'Foo_dog.png'
+      case 'Main_entrance':
+        return 'Main_entrance.png'
+      case 'Interior':
+        return 'Interior.png'
       default:
         return null
     }
@@ -155,13 +144,13 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
                     },
                     border: selectedScene?.scene_name === scene.scene_name ? '2px solid #1976d2' : '2px solid transparent'
                   }}
-                  onClick={() => onSceneSelect(scene, scene.bestFileType, scene.bestFileType.bestResolution)}
+                  onClick={() => onSceneSelect(scene, scene.bestFileType, scene.bestResolution)}
                 >
                   {sceneImage ? (
                     <CardMedia
                       component="img"
                       height="200"
-                      image={sceneImage}
+                      image={`/img/${sceneImage}`}
                       alt={scene.scene_name.replace(/_/g, ' ')}
                       sx={{ objectFit: 'cover' }}
                     />
@@ -195,7 +184,7 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
                         {scene.file_types.length} format{scene.file_types.length !== 1 ? 's' : ''} available
                       </Typography>
                       <Chip 
-                        label={`${scene.bestFileType.bestResolution.resolution} • ${formatFileSize(scene.bestFileType.bestResolution.size)}`}
+                        label={`${scene.bestResolution.resolution} • ${formatFileSize(scene.bestResolution.size)}`}
                         size="small"
                         color="primary"
                         variant="outlined"

@@ -87,18 +87,103 @@ export const getFileTypeCategory = (filename) => {
   }
 };
 
-// Get the best file type for the scene (prioritize .splat over .ply)
-export const getBestFileType = (fileTypes) => {
-  // First try to find .splat files
-  const splatFileType = fileTypes.find((ft) => ft.type === ".splat");
-  if (splatFileType && splatFileType.bestResolution) {
-    return splatFileType;
+/**
+ * Get the best file type and resolution for a scene
+ * @param {Object} scene - The scene object
+ * @param {Array} deviceResolutions - Recommended resolutions for the device
+ * @returns {Object|null} - Object with bestFileType and bestResolution, or null if none found
+ */
+export const getBestFileType = (scene, deviceResolutions) => {
+  if (!scene || !scene.file_types || scene.file_types.length === 0) {
+    return null;
   }
-  // If no .splat, try .ply files
-  const plyFileType = fileTypes.find((ft) => ft.type === ".ply");
-  if (plyFileType && plyFileType.bestResolution) {
-    return plyFileType;
+
+  // Step 1: Process all file types and find their best resolutions
+  const processedFileTypes = scene.file_types
+    .map((fileType) => {
+      if (!fileType.resolutions || fileType.resolutions.length === 0) {
+        return null;
+      }
+
+      // Find the best resolution for this file type
+      const bestResolution = findBestResolution(
+        fileType.resolutions,
+        deviceResolutions
+      );
+
+      return {
+        ...fileType,
+        bestResolution: bestResolution.resolution,
+        hasRecommendedResolution: bestResolution.isRecommended,
+      };
+    })
+    .filter((fileType) => fileType !== null);
+
+  if (processedFileTypes.length === 0) {
+    return null;
   }
-  // If neither found, return the first available
-  return fileTypes.find((ft) => ft.bestResolution);
+
+  // Step 2: Separate file types by whether they have recommended resolutions
+  const withRecommended = processedFileTypes.filter(
+    (ft) => ft.hasRecommendedResolution
+  );
+  const withoutRecommended = processedFileTypes.filter(
+    (ft) => !ft.hasRecommendedResolution
+  );
+
+  // Step 3: Try to find best file type with recommended resolution
+  if (withRecommended.length > 0) {
+    const bestWithRecommended = findBestFileTypeByPriority(withRecommended);
+    if (bestWithRecommended) {
+      return {
+        bestFileType: bestWithRecommended,
+        bestResolution: bestWithRecommended.bestResolution,
+      };
+    }
+  }
+
+  // Step 4: If no recommended resolutions, find best file type among all
+  const bestOverall = findBestFileTypeByPriority(processedFileTypes);
+  if (bestOverall) {
+    return {
+      bestFileType: bestOverall,
+      bestResolution: bestOverall.bestResolution,
+    };
+  }
+
+  return null;
 };
+
+// Helper function to find the best resolution for a file type
+function findBestResolution(resolutions, deviceResolutions) {
+  if (!deviceResolutions || deviceResolutions.length === 0) {
+    return { resolution: resolutions[0], isRecommended: false };
+  }
+
+  // Try to find a recommended resolution
+  for (const recommended of deviceResolutions) {
+    const found = resolutions.find((r) => r.resolution === recommended);
+    if (found) {
+      return { resolution: found, isRecommended: true };
+    }
+  }
+
+  // Fallback to first available resolution
+  return { resolution: resolutions[0], isRecommended: false };
+}
+
+// Helper function to find best file type by priority (splat > ply > others)
+function findBestFileTypeByPriority(fileTypes) {
+  // Priority order: splat > ply > others
+  const priorityOrder = [".splat", ".ply"];
+
+  for (const priorityType of priorityOrder) {
+    const found = fileTypes.find((ft) => ft.type === priorityType);
+    if (found) {
+      return found;
+    }
+  }
+
+  // If no priority types found, return the first available
+  return fileTypes[0] || null;
+}

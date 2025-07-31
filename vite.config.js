@@ -11,6 +11,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/models/, "/models"),
       },
+      "/img": {
+        target: "https://d7yb14d27s1sv.cloudfront.net",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/img/, "/img"),
+      },
     },
     port: 3000,
     open: true,
