@@ -6,19 +6,25 @@ export default defineConfig({
   plugins: [react()],
   
   // GitHub Pages configuration for custom domain
-  base: '/', // Use root path since you have cultural-preservation-3d.com
+  base: '/',
   
   server: {
     proxy: {
       "/models": {
-        target: "https://d7yb14d27s1sv.cloudfront.net",
+        target: "https://dr4wh7nh38tn3.cloudfront.net", // Your CloudFront domain
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/models/, "/models"),
       },
       "/img": {
-        target: "https://d7yb14d27s1sv.cloudfront.net",
+        target: "https://dr4wh7nh38tn3.cloudfront.net", // Your CloudFront domain
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/img/, "/img"),
+      },
+      // Add models.json endpoint
+      "/models.json": {
+        target: "https://dr4wh7nh38tn3.cloudfront.net", // Your CloudFront domain
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/models.json/, "/models.json"),
       },
     },
     port: 3000,
