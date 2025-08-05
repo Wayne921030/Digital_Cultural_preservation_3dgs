@@ -3,7 +3,7 @@ import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
 import { isSupportedFile } from "../utils/fileUtils";
 
 /**
- * 3D Viewer Core Logic Hook with COI Service Worker Support
+ * 3D Viewer Core Logic Hook
  */
 export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,21 +12,6 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const viewerInstanceRef = useRef(null);
   const isMountedRef = useRef(true);
   const currentSettingsRef = useRef(settings);
-
-  // Check COI status and determine worker capability
-  const getWorkerCapability = useCallback(() => {
-    const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined';
-    const isCrossOriginIsolated = typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated;
-    
-    console.log('Environment check:', {
-      hasSharedArrayBuffer,
-      isCrossOriginIsolated,
-      userAgent: navigator.userAgent.substring(0, 50) + '...'
-    });
-    
-    // Use workers if we have COI support, otherwise fallback to main thread
-    return hasSharedArrayBuffer && isCrossOriginIsolated;
-  }, []);
 
   // Load model function
   const loadModel = useCallback(
@@ -39,15 +24,11 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
 
         const alphaThreshold = Math.round((settings.alphaThreshold / 10) * 255);
 
-        // Check if the file is supported
         if (!isSupportedFile(resolution.filename)) {
           throw new Error("Unsupported file type");
         }
 
-        // Construct the model URL
         const modelUrl = `https://dr4wh7nh38tn3.cloudfront.net/models/${resolution.filename}`;
-        
-        console.log(`Attempting to load: ${modelUrl}`);
 
         await viewer.addSplatScene(modelUrl, {
           splatAlphaRemovalThreshold: alphaThreshold,
@@ -55,8 +36,6 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
           position: [0, 1, 0],
           rotation: [0, 0, 0, 1],
         });
-
-        console.log(`Successfully loaded: ${resolution.filename}`);
 
         if (!isMountedRef.current) return;
         viewer.start();
@@ -83,15 +62,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
       setIsLoading(true);
       setError(null);
 
-      // Determine worker capability
-      const canUseWorkers = getWorkerCapability();
-      
-      console.log(`Initializing viewer with useWorker: ${canUseWorkers}`);
-      if (!canUseWorkers) {
-        console.warn('COI Service Worker not yet active - using fallback mode');
-      }
-
-      // Create new viewer with dynamic worker setting
+      // Create viewer with optimal settings
       const viewer = new GaussianSplats3D.Viewer({
         cameraUp: [0, -1, -0.6],
         initialCameraPosition: [-1, -4, 6],
@@ -99,13 +70,12 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         rootElement: viewerRef.current,
         showLoadingUI: true,
         antialiased: settings.antialiased || false,
-        useWorker: canUseWorkers  // Dynamic based on COI availability
+        useWorker: true  // COI service worker enables this
       });
 
       viewerInstanceRef.current = viewer;
       currentSettingsRef.current = settings;
 
-      // Load model if scene is selected
       if (sceneSelected && selectedResolution) {
         await loadModel(viewer, settings, selectedResolution);
       }
@@ -115,9 +85,8 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
     } finally {
       setIsLoading(false);
     }
-  }, [settings, selectedResolution, sceneSelected, getWorkerCapability]);
+  }, [settings, selectedResolution, sceneSelected]);
 
-  // Initialize effect
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -125,14 +94,12 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
     };
   }, []);
 
-  // Scene selection effect
   useEffect(() => {
     if (sceneSelected) {
       initializeViewer();
     }
   }, [sceneSelected, initializeViewer]);
 
-  // Update viewer when settings change
   useEffect(() => {
     if (viewerInstanceRef.current) {
       const settingsChanged =
@@ -146,7 +113,6 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
     }
   }, [settings, initializeViewer]);
 
-  // Reset camera
   const resetCamera = useCallback(() => {
     if (viewerInstanceRef.current) {
       viewerInstanceRef.current.camera.position.set(-1, -4, 6);
