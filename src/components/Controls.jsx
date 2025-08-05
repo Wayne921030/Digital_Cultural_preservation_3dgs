@@ -21,12 +21,18 @@ function Controls({
   onSettingsChange, 
   onResetCamera, 
   onToggleAutoRotate, 
+  onToggleSwingRotate,
   isAutoRotating, 
+  isSwingRotating,
   selectedScene, 
   selectedResolution, 
   selectedDevice,
-  onResetSceneSelection 
+  onResetSceneSelection
 }) {
+  // Get orbit type from selected scene
+  const orbit = selectedScene?.orbit || "frontFocus";
+  const isTopDown360 = orbit === "topDown360";
+  const isFrontFocus = orbit === "frontFocus";
   const [showAdvanced, setShowAdvanced] = React.useState(false)
   const [alphaValue, setAlphaValue] = React.useState(settings.alphaThreshold)
   
@@ -67,7 +73,7 @@ function Controls({
           Current Scene: {selectedScene?.scene_name?.replace(/_/g, ' ') || 'Unknown'}
         </Typography>
         <Typography variant="body2" sx={{ color: '#FFFFFF', opacity: 0.9, marginBottom: 1 }}>
-          Device: {deviceConfig?.name || 'Unknown'}
+          Device: {deviceConfig?.name || 'Unknown'} • Orbit: {orbit}
         </Typography>
         {selectedResolution && (
           <>
@@ -141,13 +147,27 @@ function Controls({
         >
           Reset Camera
         </Button>
-        <Button 
-          variant={isAutoRotating ? "contained" : "outlined"}
-          onClick={onToggleAutoRotate}
-          sx={{ minWidth: 150 }}
-        >
-          {isAutoRotating ? 'Stop Auto-Rotate' : 'Toggle Auto-Rotate'}
-        </Button>
+
+        {isTopDown360 && (
+          <Button 
+            variant={isAutoRotating ? "contained" : "outlined"}
+            onClick={onToggleAutoRotate}
+            sx={{ minWidth: 150 }}
+          >
+            {isAutoRotating ? 'Stop 360° Rotate' : 'Start 360° Rotate'}
+          </Button>
+        )}
+
+        {isFrontFocus && (
+          <Button
+            variant={isSwingRotating ? "contained" : "outlined"}
+            onClick={onToggleSwingRotate}
+            sx={{ minWidth: 150 }}
+          >
+            {isSwingRotating ? 'Stop Swing' : 'Start Swing'}
+          </Button>
+        )}
+
         <Button 
           variant="outlined"
           onClick={onResetSceneSelection}
