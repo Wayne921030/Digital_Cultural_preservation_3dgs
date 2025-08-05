@@ -71,9 +71,6 @@ export const useViewer = (
           throw new Error("Unsupported file type");
         }
 
-        // Handle local uploads with ArrayBuffer or remote files with URL
-        let loaded = false;
-
         try {
           console.log(`Attempting to load: ${filename}`);
 
@@ -111,8 +108,6 @@ export const useViewer = (
               position: [0, 0, 0],
             });
           }
-
-          loaded = true;
           console.log(`Successfully loaded: ${filename}`);
         } catch (loadError) {
           console.error(`Failed to load model: ${filename}`, loadError);
@@ -187,7 +182,6 @@ export const useViewer = (
   // Scene selection effect
   useEffect(() => {
     if (filename && filename !== currentSceneRef.current) {
-      console.log("filename: ", filename);
       currentSceneRef.current = filename;
       initializeViewer();
     }

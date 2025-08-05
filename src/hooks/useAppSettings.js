@@ -5,10 +5,11 @@ import { useState, useCallback } from "react";
  */
 export const useAppSettings = () => {
   const [settings, setSettings] = useState({
-    alphaThreshold: 5,
-    antialiased: false,
+    alphaThreshold: 0,
+    antialiased: true,
   });
   const [isAutoRotating, setIsAutoRotating] = useState(false);
+  const [isSwingRotating, setIsSwingRotating] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [selectedScene, setSelectedScene] = useState(null);
   const [selectedFileType, setSelectedFileType] = useState(null);
@@ -22,7 +23,25 @@ export const useAppSettings = () => {
   }, []);
 
   const toggleAutoRotate = useCallback(() => {
-    setIsAutoRotating((prev) => !prev);
+    // For topDown360 orbit, toggle 360° rotation
+    setIsAutoRotating((prev) => {
+      const newState = !prev;
+      if (newState) {
+        setIsSwingRotating(false);
+      }
+      return newState;
+    });
+  }, []);
+
+  const toggleSwingRotate = useCallback(() => {
+    // For frontFocus orbit, toggle swing mode
+    setIsSwingRotating((prev) => {
+      const newState = !prev;
+      if (newState) {
+        setIsAutoRotating(false);
+      }
+      return newState;
+    });
   }, []);
 
   const updateSelectedDevice = useCallback((device) => {
@@ -37,7 +56,6 @@ export const useAppSettings = () => {
   }, []);
 
   const updateSceneSelection = useCallback((scene, fileType, resolution) => {
-    console.log("App: Scene selected:", { scene, fileType, resolution });
     setSelectedScene(scene);
     setSelectedFileType(fileType);
     setSelectedResolution(resolution);
@@ -63,6 +81,7 @@ export const useAppSettings = () => {
   return {
     settings,
     isAutoRotating,
+    isSwingRotating,
     selectedDevice,
     selectedScene,
     selectedFileType,
@@ -71,6 +90,7 @@ export const useAppSettings = () => {
     sceneSelected,
     updateSettings,
     toggleAutoRotate,
+    toggleSwingRotate,
     updateSelectedDevice,
     updateSceneSelection,
     resetDeviceSelection,

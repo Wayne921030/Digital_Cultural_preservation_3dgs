@@ -6,19 +6,26 @@ const Viewer = forwardRef(({
   settings, 
   onResetCamera, 
   isAutoRotating,
+  isSwingRotating = false,
   selectedResolution, 
-  sceneSelected
+  sceneSelected,
+  selectedScene
 }, ref) => {
   
   // Use custom Hooks to manage core logic
+  const orbit = selectedScene?.orbit || "frontFocus";
   const { isLoading, error, viewerRef, viewerInstanceRef, resetCamera } = useViewer(
     settings, 
-    selectedResolution, 
-    sceneSelected
+    selectedResolution.filename, 
+    selectedResolution.arrayBuffer,
+    sceneSelected,
+    orbit
   )
   
-  // Use auto-rotation Hook
-  useAutoRotate(viewerInstanceRef.current, isAutoRotating)
+    // Use auto-rotation Hook with support for swing mode
+  const anyRotation = isAutoRotating || isSwingRotating;
+  const rotationRange = isSwingRotating ? 20 : 360;
+  useAutoRotate(viewerInstanceRef.current, anyRotation, rotationRange, orbit)
 
   // Set up reset camera callback
   React.useEffect(() => {

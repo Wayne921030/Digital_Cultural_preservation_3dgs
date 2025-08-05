@@ -8,12 +8,14 @@ import DeviceSelector from './components/DeviceSelector'
 import SceneSelector from './components/SceneSelector'
 import LoadingScreen from './components/LoadingScreen'
 import { useAppSettings, useAvailableModels } from './hooks'
+import { readFileAsArrayBuffer } from './utils/fileUtils'
 
 function App() {
   // Use custom Hook to manage settings
   const { 
     settings, 
     isAutoRotating, 
+    isSwingRotating, 
     selectedDevice, 
     selectedScene,
     selectedFileType,
@@ -22,6 +24,7 @@ function App() {
     sceneSelected,
     updateSettings, 
     toggleAutoRotate, 
+    toggleSwingRotate, 
     updateSelectedDevice,
     updateSceneSelection,
     resetDeviceSelection,
@@ -37,6 +40,28 @@ function App() {
     refreshModels
   } = useAvailableModels()
   
+  const handleUploadSplat = async (file) => {
+    if (!file) return;
+    
+    try {
+      // Read file as ArrayBuffer
+      const arrayBuffer = await readFileAsArrayBuffer(file);
+      
+      // Create dummy scene metadata for local upload
+      const sceneObj = { scene_name: file.name };
+      const fileTypeObj = { type: 'local', name: 'Local Upload' };
+      const resolution = {
+        filename: file.name,
+        size: file.size,
+        arrayBuffer,
+      };
+      updateSceneSelection(sceneObj, fileTypeObj, resolution);
+    } catch (error) {
+      console.error('Error reading file:', error);
+      alert('Failed to read file. Please try again.');
+    }
+  };
+
   const resetCameraRef = useRef(null)
   const viewerRef = useRef(null)
 
@@ -70,6 +95,7 @@ function App() {
             onSceneSelect={updateSceneSelection}
             onBackToDeviceSelection={resetDeviceSelection}
             selectedScene={selectedScene}
+            onUploadSplat={handleUploadSplat}
           />
         ) : (
           <>
@@ -78,7 +104,9 @@ function App() {
               onSettingsChange={updateSettings}
               onResetCamera={() => resetCameraRef.current?.()}
               onToggleAutoRotate={toggleAutoRotate}
+              onToggleSwingRotate={toggleSwingRotate}
               isAutoRotating={isAutoRotating}
+              isSwingRotating={isSwingRotating}
               selectedScene={selectedScene}
               selectedResolution={selectedResolution}
               selectedDevice={selectedDevice}
@@ -89,8 +117,10 @@ function App() {
                 settings={settings}
                 onResetCamera={resetCameraRef}
                 isAutoRotating={isAutoRotating}
+                isSwingRotating={isSwingRotating}
                 selectedResolution={selectedResolution}
                 sceneSelected={sceneSelected}
+                selectedScene={selectedScene}
                 ref={viewerRef}
                 
               />
