@@ -29,7 +29,8 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         }
 
         // Construct the model URL
-        const modelUrl = `/models/${resolution.filename}`;
+        const assetsUrl = import.meta.env.VITE_ASSETS_URL;
+        const modelUrl = `${assetsUrl}/models/${resolution.filename}`; // This is now correct
         let loaded = false;
 
         try {

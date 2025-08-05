@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { DEVICE_CONFIGS } from "../constants";
-import.meta.env.VITE_ASSETS_URL
 
 // Fetch available models from server
 const fetchAvailableModels = async () => {
