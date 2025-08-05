@@ -1,12 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import crossOriginIsolation from 'vite-plugin-cross-origin-isolation';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), crossOriginIsolation()],
   
   // GitHub Pages configuration for custom domain
- base: '/',
+  base: '/',
   
   // Update your vite.config.js server proxy section
   server: {
