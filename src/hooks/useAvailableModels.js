@@ -57,45 +57,15 @@ export const useAvailableModels = () => {
       // Fetch all available models from server
       const serverResponse = await fetchAvailableModels();
 
-      // Handle the new structure with scenes
-      if (
-        serverResponse &&
-        serverResponse.success &&
-        Array.isArray(serverResponse.scenes)
-      ) {
+      // Directly use the scenes array from your JSON file
+      if (serverResponse && Array.isArray(serverResponse.scenes)) {
         setScenes(serverResponse.scenes);
-
-        // Process device configurations based on available scenes
-        const availableDeviceConfigs = {};
-
-        for (const [deviceKey, deviceConfig] of Object.entries(
-          desiredDeviceConfigs
-        )) {
-          // Check if any scene has files that match the device's recommended resolutions
-          const hasCompatibleFiles = serverResponse.scenes.some((scene) =>
-            scene.file_types.some((fileType) =>
-              fileType.resolutions.some((resolution) =>
-                deviceConfig.recommendedResolutions.includes(
-                  resolution.resolution
-                )
-              )
-            )
-          );
-
-          if (hasCompatibleFiles) {
-            availableDeviceConfigs[deviceKey] = {
-              ...deviceConfig,
-              available: true,
-            };
-          }
-        }
-
-        setDeviceConfigs(availableDeviceConfigs);
+        // Since scenes are available, assume all device configs are available for selection.
+        setDeviceConfigs(desiredDeviceConfigs); 
       } else {
-        // Fallback for old structure or error
+        // Handle case where the structure is not as expected
         console.warn("Unexpected server response format:", serverResponse);
-        setScenes([]);
-        setDeviceConfigs({});
+        throw new Error("Could not parse the list of available scenes.");
       }
     } catch (err) {
       console.error("Error checking available models:", err);
@@ -105,7 +75,7 @@ export const useAvailableModels = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [])
 
   // Initialize on mount
   useEffect(() => {
