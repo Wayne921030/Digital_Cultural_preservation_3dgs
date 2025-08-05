@@ -157,33 +157,33 @@ export const getBestFileType = (scene, deviceResolutions) => {
 // Helper function to find the best resolution for a file type
 function findBestResolution(resolutions, deviceResolutions) {
   if (!deviceResolutions || deviceResolutions.length === 0) {
-    return { resolution: resolutions[0], isRecommended: false };
+    return { resolutionObject: resolutions[0], isRecommended: false };
   }
 
   // Try to find a recommended resolution
   for (const recommended of deviceResolutions) {
     const found = resolutions.find((r) => r.resolution === recommended);
     if (found) {
-      return { resolution: found, isRecommended: true };
+      return { resolutionObject: found, isRecommended: true };
     }
   }
 
   // Fallback to first available resolution
-  return { resolution: resolutions[0], isRecommended: false };
+  return { resolutionObject: resolutions[0], isRecommended: false };
 }
+
 
 // Helper function to find best file type by priority (splat > ply > others)
 function findBestFileTypeByPriority(fileTypes) {
-  // Priority order: splat > ply > others
   const priorityOrder = [".splat", ".ply"];
 
   for (const priorityType of priorityOrder) {
-    const found = fileTypes.find((ft) => ft.type === priorityType);
+    const found = fileTypes.find(ft => ft.type === priorityType && ft.bestResolution);
     if (found) {
       return found;
     }
   }
-
-  // If no priority types found, return the first available
-  return fileTypes[0] || null;
+  
+  // If no priority types found, return the first available that has a resolution
+  return fileTypes.find(ft => ft.bestResolution) || null;
 }
