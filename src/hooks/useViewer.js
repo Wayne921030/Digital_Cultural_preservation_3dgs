@@ -3,7 +3,7 @@ import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
 import { isSupportedFile } from "../utils/fileUtils";
 
 /**
- * 3D Viewer Core Logic Hook
+ * 3D Viewer Core Logic Hook with COI Service Worker Support
  */
 export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,6 +12,21 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const viewerInstanceRef = useRef(null);
   const isMountedRef = useRef(true);
   const currentSettingsRef = useRef(settings);
+
+  // Check COI status and determine worker capability
+  const getWorkerCapability = useCallback(() => {
+    const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined';
+    const isCrossOriginIsolated = typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated;
+    
+    console.log('Environment check:', {
+      hasSharedArrayBuffer,
+      isCrossOriginIsolated,
+      userAgent: navigator.userAgent.substring(0, 50) + '...'
+    });
+    
+    // Use workers if we have COI support, otherwise fallback to main thread
+    return hasSharedArrayBuffer && isCrossOriginIsolated;
+  }, []);
 
   // Load model function
   const loadModel = useCallback(
@@ -29,7 +44,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
           throw new Error("Unsupported file type");
         }
 
-        // Construct the model URL - use CloudFront directly
+        // Construct the model URL
         const modelUrl = `https://dr4wh7nh38tn3.cloudfront.net/models/${resolution.filename}`;
         
         console.log(`Attempting to load: ${modelUrl}`);
@@ -68,9 +83,15 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
       setIsLoading(true);
       setError(null);
 
-      console.log('Initializing viewer with useWorker: false for GitHub Pages compatibility');
+      // Determine worker capability
+      const canUseWorkers = getWorkerCapability();
+      
+      console.log(`Initializing viewer with useWorker: ${canUseWorkers}`);
+      if (!canUseWorkers) {
+        console.warn('COI Service Worker not yet active - using fallback mode');
+      }
 
-      // Create new viewer - FORCE useWorker: false for GitHub Pages
+      // Create new viewer with dynamic worker setting
       const viewer = new GaussianSplats3D.Viewer({
         cameraUp: [0, -1, -0.6],
         initialCameraPosition: [-1, -4, 6],
@@ -78,7 +99,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         rootElement: viewerRef.current,
         showLoadingUI: true,
         antialiased: settings.antialiased || false,
-        useWorker: false  // FORCE FALSE - no SharedArrayBuffer needed
+        useWorker: canUseWorkers  // Dynamic based on COI availability
       });
 
       viewerInstanceRef.current = viewer;
@@ -94,7 +115,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
     } finally {
       setIsLoading(false);
     }
-  }, [settings, selectedResolution, sceneSelected]);
+  }, [settings, selectedResolution, sceneSelected, getWorkerCapability]);
 
   // Initialize effect
   useEffect(() => {
