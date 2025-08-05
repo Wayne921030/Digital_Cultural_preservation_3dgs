@@ -86,7 +86,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         rootElement: viewerRef.current,
         showLoadingUI: true,
         antialiased: settings.antialiased || false,
-        useWorker: false
+        useWorker: true
       });
 
       viewerInstanceRef.current = viewer;
