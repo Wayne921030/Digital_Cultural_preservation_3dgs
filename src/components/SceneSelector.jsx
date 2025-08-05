@@ -56,11 +56,18 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
     return scenes.map(scene => {
       const bestOptions = getBestFileType(scene, deviceResolutions);
       if (!bestOptions) return null;
+
+      // Find the full resolution object using the name provided by getBestFileType
+      const resolutionObject = bestOptions.bestFileType.resolutions.find(
+        r => r.resolution === bestOptions.bestResolution
+      );
+
+      if (!resolutionObject) return null;
       
       return {
         ...scene,
         bestFileType: bestOptions.bestFileType,
-        bestResolution: bestOptions.bestResolution
+        bestResolutionObject: resolutionObject // Store the full object
       };
     }).filter(scene => scene !== null);
   }
@@ -145,11 +152,7 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
                     border: selectedScene?.scene_name === scene.scene_name ? '2px solid #1976d2' : '2px solid transparent'
                   }}
                   onClick={() => {
-                    // Find the full resolution object from the file_type's resolutions array
-                    const resolutionObject = scene.bestFileType.resolutions.find(
-                      (r) => r.resolution === scene.bestResolution
-                    );
-                    onSceneSelect(scene, scene.bestFileType, resolutionObject);
+                    onSceneSelect(scene, scene.bestFileType, scene.bestResolutionObject);
                   }}
                 >
                   {sceneImage ? (
@@ -190,7 +193,7 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
                         {scene.file_types.length} format{scene.file_types.length !== 1 ? 's' : ''} available
                       </Typography>
                       <Chip 
-                        label={`${scene.bestResolution.resolution} • ${formatFileSize(scene.bestResolution.size)}`}
+                        label={`${scene.bestResolutionObject.resolution} • ${formatFileSize(scene.bestResolutionObject.size)}`}
                         size="small"
                         color="primary"
                         variant="outlined"
