@@ -144,7 +144,13 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
                     },
                     border: selectedScene?.scene_name === scene.scene_name ? '2px solid #1976d2' : '2px solid transparent'
                   }}
-                  onClick={() => onSceneSelect(scene, scene.bestFileType, scene.bestResolution)}
+                  onClick={() => {
+                    // Find the full resolution object from the file_type's resolutions array
+                    const resolutionObject = scene.bestFileType.resolutions.find(
+                      (r) => r.resolution === scene.bestResolution
+                    );
+                    onSceneSelect(scene, scene.bestFileType, resolutionObject);
+                  }}
                 >
                   {sceneImage ? (
                     <CardMedia
