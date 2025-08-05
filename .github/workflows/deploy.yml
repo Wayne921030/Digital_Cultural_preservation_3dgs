@@ -1,11 +1,10 @@
 # .github/workflows/deploy.yml
-name: Deploy Vite React App to GitHub Pages
+name: Deploy Cultural Preservation 3DGS to GitHub Pages
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -13,7 +12,7 @@ permissions:
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# Allow only one concurrent deployment
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -23,10 +22,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         
-      - name: Setup Node.js
+      - name: Setup Node.js 18
         uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -35,18 +34,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
-      - name: Build
+      - name: Build Vite React app
         run: npm run build
+        env:
+          NODE_ENV: production
         
-      - name: Setup Pages
+      - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
         
-      - name: Upload artifact
+      - name: Upload build artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
-  # Deployment job
+  # Deploy job
   deploy:
     environment:
       name: github-pages
