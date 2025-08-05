@@ -8,23 +8,34 @@ export default defineConfig({
   // GitHub Pages configuration for custom domain
   base: '/',
   
+  // Update your vite.config.js server proxy section
   server: {
     proxy: {
       "/models": {
-        target: "https://dr4wh7nh38tn3.cloudfront.net", // Your CloudFront domain
+        target: "https://dr4wh7nh38tn3.cloudfront.net",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/models/, "/models"),
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('Proxy error:', err);
+          });
+        }
       },
       "/img": {
-        target: "https://dr4wh7nh38tn3.cloudfront.net", // Your CloudFront domain
+        target: "https://dr4wh7nh38tn3.cloudfront.net",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/img/, "/img"),
       },
-      // Add models.json endpoint
+      // This is the key fix - proxy models.json through CloudFront
       "/models.json": {
-        target: "https://dr4wh7nh38tn3.cloudfront.net", // Your CloudFront domain
+        target: "https://dr4wh7nh38tn3.cloudfront.net",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/models.json/, "/models.json"),
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('models.json proxy error:', err);
+          });
+        }
       },
     },
     port: 3000,
