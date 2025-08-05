@@ -13,7 +13,6 @@ import { readFileAsArrayBuffer } from './utils/fileUtils'
 function App() {
   // Use custom Hook to manage settings
   const { 
-    settings, 
     isAutoRotating, 
     isSwingRotating, 
     selectedDevice, 
@@ -22,7 +21,6 @@ function App() {
     selectedResolution,
     deviceSelected,
     sceneSelected,
-    updateSettings, 
     toggleAutoRotate, 
     toggleSwingRotate, 
     updateSelectedDevice,
@@ -100,8 +98,6 @@ function App() {
         ) : (
           <>
             <Controls 
-              settings={settings}
-              onSettingsChange={updateSettings}
               onResetCamera={() => resetCameraRef.current?.()}
               onToggleAutoRotate={toggleAutoRotate}
               onToggleSwingRotate={toggleSwingRotate}
@@ -114,7 +110,6 @@ function App() {
             />
             <Suspense fallback={<div>Loading Viewer...</div>}>
               <Viewer 
-                settings={settings}
                 onResetCamera={resetCameraRef}
                 isAutoRotating={isAutoRotating}
                 isSwingRotating={isSwingRotating}

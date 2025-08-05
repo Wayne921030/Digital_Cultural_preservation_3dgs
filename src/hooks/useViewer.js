@@ -42,7 +42,6 @@ function applyControlConfig(controls, configName) {
 }
 
 export const useViewer = (
-  settings,
   filename,
   arrayBuffer,
   sceneSelected,
@@ -53,18 +52,15 @@ export const useViewer = (
   const viewerRef = useRef(null);
   const viewerInstanceRef = useRef(null);
   const isMountedRef = useRef(true);
-  const currentSettingsRef = useRef(settings);
   const currentSceneRef = useRef(null);
   // Load model function
   const loadModel = useCallback(
-    async (viewer, settings, filename) => {
+    async (viewer, filename) => {
       try {
         setIsLoading(true);
         setError(null);
 
         if (!isMountedRef.current) return;
-
-        const alphaThreshold = Math.round((settings.alphaThreshold / 10) * 255);
 
         // Check if the file is supported
         if (!isSupportedFile(filename)) {
@@ -92,7 +88,6 @@ export const useViewer = (
 
             try {
               await viewer.addSplatScene(tempUrl, {
-                splatAlphaRemovalThreshold: alphaThreshold,
                 showLoadingUI: false,
                 position: [0, 0, 0],
               });
@@ -103,7 +98,6 @@ export const useViewer = (
           } else {
             // Remote file - use URL
             await viewer.addSplatScene(`/models/${filename}`, {
-              splatAlphaRemovalThreshold: alphaThreshold,
               showLoadingUI: false,
               position: [0, 0, 0],
             });
@@ -129,7 +123,7 @@ export const useViewer = (
         }
       }
     },
-    [settings, filename, arrayBuffer]
+    [filename, arrayBuffer]
   );
 
   // Initialize viewer
@@ -148,11 +142,10 @@ export const useViewer = (
         initialCameraLookAt: [0, 0, 0],
         rootElement: viewerRef.current,
         showLoadingUI: false,
-        antialiased: settings.antialiased || false,
+        antialiased: true,
       });
 
       viewerInstanceRef.current = viewer;
-      currentSettingsRef.current = settings;
 
       const controls = viewer.controls;
       if (controls) {
@@ -161,7 +154,7 @@ export const useViewer = (
 
       // Load model if scene is selected
       if (sceneSelected && filename) {
-        await loadModel(viewer, settings, filename);
+        await loadModel(viewer, filename);
       }
     } catch (err) {
       console.error("Error initializing viewer:", err);
@@ -169,7 +162,7 @@ export const useViewer = (
     } finally {
       setIsLoading(false);
     }
-  }, [settings, filename, sceneSelected, orbit]);
+  }, [filename, sceneSelected, orbit]);
 
   // Initialize effect
   useEffect(() => {

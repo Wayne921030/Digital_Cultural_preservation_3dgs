@@ -3,7 +3,6 @@ import { Paper, Box, Typography, CircularProgress } from '@mui/material'
 import { useViewer, useAutoRotate } from '../hooks'
 
 const Viewer = forwardRef(({ 
-  settings, 
   onResetCamera, 
   isAutoRotating,
   isSwingRotating = false,
@@ -15,7 +14,6 @@ const Viewer = forwardRef(({
   // Use custom Hooks to manage core logic
   const orbit = selectedScene?.orbit || "frontFocus";
   const { isLoading, error, viewerRef, viewerInstanceRef, resetCamera } = useViewer(
-    settings, 
     selectedResolution.filename, 
     selectedResolution.arrayBuffer,
     sceneSelected,

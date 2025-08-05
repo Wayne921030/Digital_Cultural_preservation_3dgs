@@ -4,10 +4,6 @@ import { useState, useCallback } from "react";
  * Application settings management Hook
  */
 export const useAppSettings = () => {
-  const [settings, setSettings] = useState({
-    alphaThreshold: 0,
-    antialiased: true,
-  });
   const [isAutoRotating, setIsAutoRotating] = useState(false);
   const [isSwingRotating, setIsSwingRotating] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState(null);
@@ -16,11 +12,6 @@ export const useAppSettings = () => {
   const [selectedResolution, setSelectedResolution] = useState(null);
   const [deviceSelected, setDeviceSelected] = useState(false);
   const [sceneSelected, setSceneSelected] = useState(false);
-
-  const updateSettings = useCallback((newSettings) => {
-    console.log("App: Settings changed:", newSettings);
-    setSettings(newSettings);
-  }, []);
 
   const toggleAutoRotate = useCallback(() => {
     // For topDown360 orbit, toggle 360° rotation
@@ -79,7 +70,6 @@ export const useAppSettings = () => {
   }, []);
 
   return {
-    settings,
     isAutoRotating,
     isSwingRotating,
     selectedDevice,
@@ -88,7 +78,6 @@ export const useAppSettings = () => {
     selectedResolution,
     deviceSelected,
     sceneSelected,
-    updateSettings,
     toggleAutoRotate,
     toggleSwingRotate,
     updateSelectedDevice,

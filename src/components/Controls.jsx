@@ -2,23 +2,14 @@ import React from 'react'
 import { 
   Paper, 
   Typography, 
-  Slider, 
   Button, 
-  Grid, 
   Box,
-  FormControl,
-  Switch,
-  FormControlLabel,
-  Collapse,
-  IconButton,
 } from '@mui/material'
-import { Refresh as RefreshIcon, ExpandMore } from '@mui/icons-material'
+import { Refresh as RefreshIcon } from '@mui/icons-material'
 import { DEVICE_CONFIGS } from '../constants'
 import { formatFileSize } from '../utils/fileUtils'
 
 function Controls({ 
-  settings, 
-  onSettingsChange, 
   onResetCamera, 
   onToggleAutoRotate, 
   onToggleSwingRotate,
@@ -33,18 +24,6 @@ function Controls({
   const orbit = selectedScene?.orbit || "frontFocus";
   const isTopDown360 = orbit === "topDown360";
   const isFrontFocus = orbit === "frontFocus";
-  const [showAdvanced, setShowAdvanced] = React.useState(false)
-  const [alphaValue, setAlphaValue] = React.useState(settings.alphaThreshold)
-  
-  const handleSettingChange = (setting, value) => {
-    const newSettings = { ...settings, [setting]: value }
-    onSettingsChange(newSettings)
-  }
-  
-  // Keep alphaValue in sync if settings.alphaThreshold changes from outside
-  React.useEffect(() => {
-    setAlphaValue(settings.alphaThreshold)
-  }, [settings.alphaThreshold])
 
   const deviceConfig = DEVICE_CONFIGS[selectedDevice]
 
@@ -83,61 +62,6 @@ function Controls({
           </>
         )}
       </Box>
-      
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-        <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
-          Advanced Settings
-        </Typography>
-        <IconButton
-          onClick={() => setShowAdvanced((prev) => !prev)}
-          aria-label="expand advanced settings"
-          size="small"
-          sx={{ transform: showAdvanced ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-        >
-          <ExpandMore />
-        </IconButton>
-      </Box>
-      <Collapse in={showAdvanced} timeout="auto" unmountOnExit>
-        <Grid container spacing={3} sx={{ marginBottom: 3 }}>
-          <Grid item xs={12}>
-            <FormControl fullWidth>
-               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                 <Typography variant="body2" sx={{ color: 'text.primary', width: 200, flexShrink: 0 }}>
-                   Alpha Removal Threshold: {Math.round((settings.alphaThreshold / 10) * 255)}
-                 </Typography>
-                 <Slider
-                   value={alphaValue}
-                   onChange={(e, value) => setAlphaValue(value)}
-                   onChangeCommitted={(e, value) => handleSettingChange('alphaThreshold', value)}
-                   min={0}
-                   max={10}
-                   step={0.1}
-                   valueLabelDisplay="auto"
-                   sx={{ flex: 1, minWidth: 200 }}
-                 />
-               </Box>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={settings.antialiased || false}
-                    onChange={(e) => handleSettingChange('antialiased', e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label={
-                  <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                    Antialiasing: {settings.antialiased ? 'Enabled' : 'Disabled'}
-                  </Typography>
-                }
-              />
-            </FormControl>
-          </Grid>
-        </Grid>
-      </Collapse>
       
       <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
         <Button 
