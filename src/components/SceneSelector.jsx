@@ -54,20 +54,14 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
   // Filter scenes and get the best file type and resolution for each scene
   const getScenesWithBestOptions = (scenes, deviceResolutions) => {
     return scenes.map(scene => {
-      const bestOptions = getBestFileType(scene, deviceResolutions);
-      if (!bestOptions) return null;
-
-      // Find the full resolution object using the name provided by getBestFileType
-      const resolutionObject = bestOptions.bestFileType.resolutions.find(
-        r => r.resolution === bestOptions.bestResolution
-      );
-
-      if (!resolutionObject) return null;
+      const bestOption = getBestFileOption(scene, deviceResolutions);
+      if (!bestOption) return null;
       
       return {
         ...scene,
-        bestFileType: bestOptions.bestFileType,
-        bestResolutionObject: resolutionObject // Store the full object
+        // Store the results directly on the scene object
+        bestFileType: bestOption.fileType,
+        bestResolutionObject: bestOption.resolutionObject
       };
     }).filter(scene => scene !== null);
   }
@@ -151,9 +145,7 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
                     },
                     border: selectedScene?.scene_name === scene.scene_name ? '2px solid #1976d2' : '2px solid transparent'
                   }}
-                  onClick={() => {
-                    onSceneSelect(scene, scene.bestFileType, scene.bestResolutionObject);
-                  }}
+                  onClick={() => onSceneSelect(scene, scene.bestFileType, scene.bestResolutionObject)}
                 >
                   {sceneImage ? (
                     <CardMedia
