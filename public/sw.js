@@ -3,6 +3,7 @@
 const CACHE_DB = "modelCacheDB";
 const STORE = "models";
 const DB_VERSION = 1;
+const MAX_CACHE_SIZE = 3; // Maximum number of models to cache
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -33,14 +34,54 @@ async function getModelFromDB(key) {
   });
 }
 
-async function saveModelToDB(key, arrayBuffer) {
+async function getAllKeys() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const store = tx.objectStore(STORE);
+    const req = store.getAllKeys();
+    req.onsuccess = (e) => resolve(e.target.result || []);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function deleteModelFromDB(key) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, "readwrite");
     const store = tx.objectStore(STORE);
-    const req = store.put(arrayBuffer, key);
+    const req = store.delete(key);
     req.onsuccess = () => resolve();
     req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function saveModelToDB(key, arrayBuffer) {
+  const db = await openDB();
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Check if we need to remove oldest models
+      const allKeys = await getAllKeys();
+
+      if (allKeys.length >= MAX_CACHE_SIZE && !allKeys.includes(key)) {
+        // Remove the random model
+        const randomIndex = Math.floor(Math.random() * allKeys.length);
+        const randomKey = allKeys[randomIndex];
+        await deleteModelFromDB(randomKey);
+        console.log("Removed random model from cache:", randomKey);
+      }
+
+      const tx = db.transaction(STORE, "readwrite");
+      const store = tx.objectStore(STORE);
+      const req = store.put(arrayBuffer, key);
+      req.onsuccess = () => {
+        console.log("Model saved to cache:", key);
+        resolve();
+      };
+      req.onerror = (e) => reject(e.target.error);
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
