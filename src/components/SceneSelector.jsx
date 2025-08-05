@@ -16,11 +16,35 @@ import {
 import { 
   ViewInAr as ViewInArIcon,
   ArrowBack as ArrowBackIcon,
+  CloudUpload as CloudUploadIcon,
 } from '@mui/icons-material'
 import { RESOLUTION_QUALITY, DEVICE_CONFIGS } from '../constants'
 import { formatFileSize, getBestFileType } from '../utils/fileUtils'
 
-function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSelection, selectedScene }) {
+function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSelection, selectedScene, onUploadSplat }) {
+  const [isDragOver, setIsDragOver] = React.useState(false);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const splatFile = files.find(file => file.name.toLowerCase().endsWith('.splat'));
+    
+    if (splatFile) {
+      onUploadSplat?.(splatFile);
+    }
+  };
 
   if (!scenes || scenes.length === 0) {
     return (
@@ -92,10 +116,16 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(10px)',
         minHeight: '60vh',
-        position: 'relative'
+        position: 'relative',
+        border: isDragOver ? '3px dashed rgba(0, 0, 0, 0.4)' : '3px solid transparent',
+        transition: 'all 0.3s ease',
+        backgroundColor: isDragOver ?  'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.95)',
       }}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
-      <Typography variant="h4" sx={{ marginBottom: 3, color: '#000000', textAlign: 'center' }}>
+      <Typography variant="h4" sx={{ marginBottom: 3, color: 'text.primary', textAlign: 'center' }}>
         Choose a Scene
       </Typography>
 
@@ -106,9 +136,37 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
         </Typography>
       </Alert>
 
-      <Typography variant="body1" sx={{ marginBottom: 4, color: '#000000', textAlign: 'center' }}>
-        Click on a scene to view it with the best format and resolution for your device.
-      </Typography>
+      <Box sx={{ marginBottom: 4, textAlign: 'center' }}>
+        {!isDragOver && (
+          <Typography variant="body1" sx={{ color: '#000000', marginBottom: 2 }}>
+            Click on a scene to view it with the best format and resolution for your device.
+          </Typography>
+        )}
+        {isDragOver && (
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: 'text.primary', 
+              textAlign: 'center',
+              mt: 4,
+              animation: 'pulse 1.5s ease-in-out infinite',
+              '@keyframes pulse': {
+                '0%': {
+                  opacity: 0.7
+                },
+                '50%': {
+                  opacity: 1
+                },
+                '100%': {
+                  opacity: 0.7
+                }
+              }
+            }}
+          >
+            Drop your .splat file here to upload
+          </Typography>
+        )}
+      </Box>
 
       {scenesWithBestOptions.length === 0 ? (
         <Box sx={{ textAlign: 'center', padding: 4 }}>
@@ -142,7 +200,7 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
                       transform: 'translateY(-4px)',
                       boxShadow: 4,
                     },
-                    border: selectedScene?.scene_name === scene.scene_name ? '2px solid #1976d2' : '2px solid transparent'
+                    border: selectedScene?.scene_name === scene.scene_name ? '2px solid #5C95CFFF' : '2px solid transparent'
                   }}
                   onClick={() => onSceneSelect(scene, scene.bestFileType, scene.bestResolution)}
                 >
@@ -200,11 +258,12 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSe
         </Grid>
       )}
 
-      {/* Back button */}
+      {/* Upload and Back buttons */}
       <Box sx={{ 
         marginTop: 3,
         display: 'flex',
-        justifyContent: 'flex-start'
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
         <Button
           variant="outlined"
