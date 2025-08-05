@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   
   // GitHub Pages configuration for custom domain
-  base: '/',
+ base: '/',
   
   // Update your vite.config.js server proxy section
   server: {

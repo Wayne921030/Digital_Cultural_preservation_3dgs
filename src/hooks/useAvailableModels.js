@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { DEVICE_CONFIGS } from "../constants";
+import.meta.env.VITE_ASSETS_URL
 
 // Fetch available models from server
 const fetchAvailableModels = async () => {
   try {
-    const url = `/models/models.json?v=${Date.now()}`;
+    // This now correctly points to your CloudFront URL
+    const assetsUrl = import.meta.env.VITE_ASSETS_URL;
+    const url = `${assetsUrl}/models.json?v=${Date.now()}`; 
     const response = await fetch(url);
 
     if (!response.ok) {
