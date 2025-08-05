@@ -18,7 +18,7 @@ import {
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material'
 import { RESOLUTION_QUALITY, DEVICE_CONFIGS } from '../constants'
-import { formatFileSize, getBestFileType } from '../utils/fileUtils'
+import { formatFileSize, getBestFileOption  } from '../utils/fileUtils'
 
 function SceneSelector({ scenes, selectedDevice, onSceneSelect, onBackToDeviceSelection, selectedScene }) {
 
