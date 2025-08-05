@@ -1,19 +1,28 @@
 import { useState, useEffect, useCallback } from "react";
 import { DEVICE_CONFIGS } from "../constants";
 
-// Fetch available models from server
+// Fetch available models from CloudFront directly
 const fetchAvailableModels = async () => {
   try {
-    // This now correctly points to your CloudFront URL
-    const assetsUrl = import.meta.env.VITE_ASSETS_URL;
-    const url = `${assetsUrl}/models.json?v=${Date.now()}`; 
-    const response = await fetch(url);
+    // Use CloudFront URL directly - no environment variable needed
+    const url = `https://dr4wh7nh38tn3.cloudfront.net/models.json?v=${Date.now()}`; 
+    
+    console.log('Fetching models from:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      mode: 'cors',  // Explicitly set CORS mode
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const contentType = response.headers.get("content-type");
+    console.log('Response content-type:', contentType);
 
     let data;
     if (contentType && contentType.includes("application/json")) {
@@ -24,14 +33,12 @@ const fetchAvailableModels = async () => {
       try {
         data = JSON.parse(text);
       } catch (parseError) {
-        console.warn(
-          "Failed to parse response as JSON, treating as plain text"
-        );
-        // If it's not JSON, split by newlines or commas to get file list
-        data = text.split(/[\n,]/).filter((item) => item.trim().length > 0);
+        console.warn("Failed to parse response as JSON:", parseError);
+        throw new Error('Invalid JSON response from server');
       }
     }
 
+    console.log('Successfully fetched models data:', data);
     return data;
   } catch (error) {
     console.error("Error fetching available models:", error);
@@ -54,11 +61,14 @@ export const useAvailableModels = () => {
       setIsLoading(true);
       setError(null);
 
-      // Fetch all available models from server
+      console.log('Checking available models...');
+
+      // Fetch all available models from CloudFront
       const serverResponse = await fetchAvailableModels();
 
       // Directly use the scenes array from your JSON file
       if (serverResponse && Array.isArray(serverResponse.scenes)) {
+        console.log(`Found ${serverResponse.scenes.length} scenes`);
         setScenes(serverResponse.scenes);
         // Since scenes are available, assume all device configs are available for selection.
         setDeviceConfigs(desiredDeviceConfigs); 

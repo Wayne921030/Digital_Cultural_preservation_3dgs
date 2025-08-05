@@ -12,6 +12,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const viewerInstanceRef = useRef(null);
   const isMountedRef = useRef(true);
   const currentSettingsRef = useRef(settings);
+
   // Load model function
   const loadModel = useCallback(
     async (viewer, settings, resolution) => {
@@ -28,37 +29,26 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
           throw new Error("Unsupported file type");
         }
 
-        // Construct the model URL
-        const assetsUrl = import.meta.env.VITE_ASSETS_URL;
-        const modelUrl = `${assetsUrl}/models/${resolution.filename}`; // This is now correct
-        let loaded = false;
+        // Construct the model URL - use CloudFront directly
+        const modelUrl = `https://dr4wh7nh38tn3.cloudfront.net/models/${resolution.filename}`;
+        
+        console.log(`Attempting to load: ${modelUrl}`);
 
-        try {
-          console.log(`Attempting to load: ${modelUrl}`);
-          await viewer.addSplatScene(modelUrl, {
-            splatAlphaRemovalThreshold: alphaThreshold,
-            showLoadingUI: false,
-            position: [0, 1, 0],
-            rotation: [0, 0, 0, 1],
-          });
-          loaded = true;
-          console.log(`Successfully loaded: ${resolution.filename}`);
-        } catch (loadError) {
-          console.error(
-            `Failed to load model: ${resolution.filename}`,
-            loadError
-          );
-          throw new Error(
-            `Failed to load model: ${resolution.filename}. Please check if the server is running and the model file exists.`
-          );
-        }
+        await viewer.addSplatScene(modelUrl, {
+          splatAlphaRemovalThreshold: alphaThreshold,
+          showLoadingUI: false,
+          position: [0, 1, 0],
+          rotation: [0, 0, 0, 1],
+        });
+
+        console.log(`Successfully loaded: ${resolution.filename}`);
 
         if (!isMountedRef.current) return;
         viewer.start();
       } catch (err) {
         console.error("Error loading model:", err);
         if (isMountedRef.current) {
-          setError(err.message);
+          setError(`Failed to load model: ${err.message}`);
         }
       } finally {
         if (isMountedRef.current) {
@@ -78,7 +68,9 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
       setIsLoading(true);
       setError(null);
 
-      // Create new viewer
+      console.log('Initializing viewer with useWorker: false for GitHub Pages compatibility');
+
+      // Create new viewer - FORCE useWorker: false for GitHub Pages
       const viewer = new GaussianSplats3D.Viewer({
         cameraUp: [0, -1, -0.6],
         initialCameraPosition: [-1, -4, 6],
@@ -86,7 +78,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         rootElement: viewerRef.current,
         showLoadingUI: true,
         antialiased: settings.antialiased || false,
-        useWorker: false
+        useWorker: false  // FORCE FALSE - no SharedArrayBuffer needed
       });
 
       viewerInstanceRef.current = viewer;
@@ -98,7 +90,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
       }
     } catch (err) {
       console.error("Error initializing viewer:", err);
-      setError(err.message);
+      setError(`Viewer initialization failed: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +123,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         initializeViewer();
       }
     }
-  }, [settings]);
+  }, [settings, initializeViewer]);
 
   // Reset camera
   const resetCamera = useCallback(() => {
