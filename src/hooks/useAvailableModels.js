@@ -1,111 +1,55 @@
 import { useState, useEffect, useCallback } from "react";
 import { DEVICE_CONFIGS } from "../constants";
+import { MODELS_INDEX } from "../config"; // if you didn’t add config.js, use your CloudFront URL directly
 
-// Fetch available models from server
-const fetchAvailableModels = async () => {
-  try {
-    const url = `/models/models.json?v=${Date.now()}`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const contentType = response.headers.get("content-type");
-
-    let data;
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json();
-    } else {
-      // If not JSON, try to parse as text first
-      const text = await response.text();
-      try {
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.warn(
-          "Failed to parse response as JSON, treating as plain text"
-        );
-        // If it's not JSON, split by newlines or commas to get file list
-        data = text.split(/[\n,]/).filter((item) => item.trim().length > 0);
-      }
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Error fetching available models:", error);
-    throw error;
-  }
-};
+// Fetch + tolerant parse (works even if served as text/plain)
+async function fetchAvailableModels() {
+  const res = await fetch(`${MODELS_INDEX}?v=${Date.now()}`, {
+    headers: { Accept: "application/json" },
+    mode: "cors",
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const type = res.headers.get("content-type") || "";
+  return type.includes("application/json") ? res.json() : JSON.parse(await res.text());
+}
 
 export const useAvailableModels = () => {
   const [scenes, setScenes] = useState([]);
+  const [deviceConfigs, setDeviceConfigs] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [deviceConfigs, setDeviceConfigs] = useState({});
 
-  // Use the imported device configurations
-  const desiredDeviceConfigs = DEVICE_CONFIGS;
-
-  // Check which models are available
   const checkAvailableModels = useCallback(async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       setError(null);
 
-      // Fetch all available models from server
       const serverResponse = await fetchAvailableModels();
+      const scenesArr = Array.isArray(serverResponse?.scenes) ? serverResponse.scenes : [];
+      setScenes(scenesArr);
 
-      // Handle the new structure with scenes
-      if (
-        serverResponse &&
-        serverResponse.success &&
-        Array.isArray(serverResponse.scenes)
-      ) {
-        setScenes(serverResponse.scenes);
+      // Build availability per device (robust to missing fields)
+      const nextDeviceConfigs = {};
+      for (const [key, cfg] of Object.entries(DEVICE_CONFIGS)) {
+        const rec = Array.isArray(cfg.recommendedResolutions)
+          ? cfg.recommendedResolutions
+          : ["low", "medium", "high", "full"]; // fallback
 
-        // Process device configurations based on available scenes
-        const availableDeviceConfigs = {};
+        const hasCompatibleFiles = scenesArr.some(scene =>
+          Array.isArray(scene.file_types) &&
+          scene.file_types.some(ft =>
+            Array.isArray(ft.resolutions) &&
+            ft.resolutions.some(r => rec.includes(r.resolution))
+          )
+        );
 
-        for (const [deviceKey, deviceConfig] of Object.entries(
-          desiredDeviceConfigs
-        )) {
-          // Check if any scene has files that match the device's recommended resolutions
-          const hasCompatibleFiles = serverResponse.scenes.some((scene) =>
-            scene.file_types.some((fileType) =>
-              fileType.resolutions.some((resolution) =>
-                deviceConfig.recommendedResolutions.includes(
-                  resolution.resolution
-                )
-              )
-            )
-          );
-
-          if (hasCompatibleFiles) {
-            availableDeviceConfigs[deviceKey] = {
-              ...deviceConfig,
-              available: true,
-            };
-          }
-        }
-
-        // If no compatible devices found, show all device configs anyway
-        if (Object.keys(availableDeviceConfigs).length === 0) {
-          console.warn(
-            "No compatible devices found, showing all device configs"
-          );
-          setDeviceConfigs(desiredDeviceConfigs);
-        } else {
-          setDeviceConfigs(availableDeviceConfigs);
-        }
-      } else {
-        // Fallback for old structure or error
-        console.warn("Unexpected server response format:", serverResponse);
-        setScenes([]);
-        setDeviceConfigs({});
+        nextDeviceConfigs[key] = { ...cfg, available: hasCompatibleFiles };
       }
+
+      setDeviceConfigs(nextDeviceConfigs);
     } catch (err) {
       console.error("Error checking available models:", err);
-      setError(err.message);
+      setError(err.message || "Failed to fetch available models");
       setScenes([]);
       setDeviceConfigs({});
     } finally {
@@ -113,16 +57,7 @@ export const useAvailableModels = () => {
     }
   }, []);
 
-  // Initialize on mount
-  useEffect(() => {
-    checkAvailableModels();
-  }, [checkAvailableModels]);
+  useEffect(() => { checkAvailableModels(); }, [checkAvailableModels]);
 
-  return {
-    scenes,
-    deviceConfigs,
-    isLoading,
-    error,
-    refreshModels: checkAvailableModels,
-  };
+  return { scenes, deviceConfigs, isLoading, error, refreshModels: checkAvailableModels };
 };

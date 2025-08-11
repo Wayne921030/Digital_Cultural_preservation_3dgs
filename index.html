@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Cultural Preservation 3DGS</title>
+    <!-- COI Service Worker for GitHub Pages -->
+    <script>
+    (function () {
+    console.log("🔧 Initializing COI Service Worker for GitHub Pages");
+    if (!('serviceWorker' in navigator)) return console.error("SW not supported");
+    navigator.serviceWorker.register('/coi-serviceworker.js').then(() => {
+        if (!crossOriginIsolated) location.reload();
+        console.log("✅ Already cross-origin isolated!");
+    }).catch(err => console.error("SW error", err));
+    })();
+    </script>
+
+    <!-- Optional: preconnect to your CloudFront -->
+    <link rel="preconnect" href="https://dr4wh7nh38tn3.cloudfront.net">
+
 </head>
 <body>
     <div id="root"></div>

@@ -1,18 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
 import { isSupportedFile } from "../utils/fileUtils";
-import * as THREE from "three";
+import { modelURL } from "../config";
 
-/**
- * 3D Viewer Core Logic Hook
- */
+/** Orbit / control presets */
 const controlConfigs = {
-  base: {
-    minPolarAngle: 0,
-    maxPolarAngle: Math.PI,
-    enablePan: true,
-    enableZoom: true,
-  },
+  base: { minPolarAngle: 0, maxPolarAngle: Math.PI, enablePan: true, enableZoom: true },
   topDown360: {
     minPolarAngle: 0,
     maxPolarAngle: Math.PI / 2,
@@ -22,177 +15,202 @@ const controlConfigs = {
     enableZoom: true,
   },
   frontFocus: {
-    minPolarAngle: THREE.MathUtils.degToRad(80),
-    maxPolarAngle: THREE.MathUtils.degToRad(120),
-    minAzimuthAngle: THREE.MathUtils.degToRad(-20),
-    maxAzimuthAngle: THREE.MathUtils.degToRad(20),
+    minPolarAngle: Math.PI / 4,
+    maxPolarAngle: (3 * Math.PI) / 4,
+    minAzimuthAngle: -Math.PI / 3,
+    maxAzimuthAngle: Math.PI / 3,
     enablePan: true,
     enableZoom: true,
   },
 };
 
-function applyControlConfig(controls, configName) {
-  const cfg = controlConfigs[configName] || controlConfigs.base;
-  controls.minPolarAngle = cfg.minPolarAngle;
-  controls.maxPolarAngle = cfg.maxPolarAngle;
-  controls.minAzimuthAngle = cfg.minAzimuthAngle ?? controls.minAzimuthAngle;
-  controls.maxAzimuthAngle = cfg.maxAzimuthAngle ?? controls.maxAzimuthAngle;
-  controls.enablePan = cfg.enablePan ?? controls.enablePan;
-  controls.enableZoom = cfg.enableZoom ?? controls.enableZoom;
+function applyControlConfig(controls, presetName) {
+  const cfg = controlConfigs[presetName] || controlConfigs.base;
+  if (!controls || !cfg) return;
+  if (typeof cfg.minPolarAngle === "number") controls.minPolarAngle = cfg.minPolarAngle;
+  if (typeof cfg.maxPolarAngle === "number") controls.maxPolarAngle = cfg.maxPolarAngle;
+  if (typeof cfg.minAzimuthAngle === "number") controls.minAzimuthAngle = cfg.minAzimuthAngle;
+  if (typeof cfg.maxAzimuthAngle === "number") controls.maxAzimuthAngle = cfg.maxAzimuthAngle;
+  if (typeof cfg.enablePan === "boolean") controls.enablePan = cfg.enablePan;
+  if (typeof cfg.enableZoom === "boolean") controls.enableZoom = cfg.enableZoom;
 }
 
-export const useViewer = (
-  filename,
-  arrayBuffer,
-  sceneSelected,
-  orbit = "frontFocus"
-) => {
+// Ensure camera points at content after load
+function frameScene(viewer) {
+  if (!viewer) return;
+  if (typeof viewer.frameAll === "function") viewer.frameAll();
+  else if (typeof viewer.fitCameraToScene === "function") viewer.fitCameraToScene();
+  else viewer.controls?.update?.();
+}
+
+// Cleanup that’s safe/idempotent (no direct DOM removals)
+function teardownViewer(viewerRefObj) {
+  const v = viewerRefObj.current;
+  if (!v) return;
+  try {
+    v.stop?.();     // stop render loop (if exposed)
+    v.dispose?.();  // dispose handles scenes + GL + DOM internally
+  } catch {
+    // ignore best-effort errors
+  }
+  viewerRefObj.current = null;
+}
+
+export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const viewerRef = useRef(null);
   const viewerInstanceRef = useRef(null);
   const isMountedRef = useRef(true);
-  const currentSceneRef = useRef(null);
-  // Load model function
+  const currentSettingsRef = useRef(settings);
+
+  // Load model into an existing viewer
   const loadModel = useCallback(
-    async (viewer, filename) => {
+    async (viewer, _settings, resolution) => {
       try {
         setIsLoading(true);
         setError(null);
-
         if (!isMountedRef.current) return;
 
-        // Check if the file is supported
-        if (!isSupportedFile(filename)) {
-          throw new Error("Unsupported file type");
+        if (!resolution?.filename || !isSupportedFile(resolution.filename)) {
+          throw new Error("Unsupported or missing model filename");
         }
 
-        try {
-          console.log(`Attempting to load: ${filename}`);
+        const url = modelURL(resolution.filename);
 
-          if (arrayBuffer) {
-            // Local upload - create a temporary file URL
-            const tempUrl = `/temp/${filename}`;
+        await viewer.addSplatScene(url, {
+          showLoadingUI: false,     // only your app loader is shown
+          position: [0, 0, 0],
+        });
 
-            // Mock the fetch for this URL to return our ArrayBuffer
-            const originalFetch = window.fetch;
-            window.fetch = async (url, options) => {
-              if (url === tempUrl) {
-                return new Response(arrayBuffer, {
-                  status: 200,
-                  headers: { "Content-Type": "application/octet-stream" },
-                });
-              }
-              return originalFetch(url, options);
-            };
+        // Make sure we’re drawing
+        viewer.start?.();
+        viewer.render?.();
 
-            try {
-              await viewer.addSplatScene(tempUrl, {
-                showLoadingUI: false,
-                position: [0, 0, 0],
-              });
-            } finally {
-              // Restore original fetch
-              window.fetch = originalFetch;
-            }
-          } else {
-            // Remote file - use URL
-            await viewer.addSplatScene(`/models/${filename}`, {
-              showLoadingUI: false,
-              position: [0, 0, 0],
-            });
-          }
-          console.log(`Successfully loaded: ${filename}`);
-        } catch (loadError) {
-          console.error(`Failed to load model: ${filename}`, loadError);
-          throw new Error(
-            `Failed to load model: ${filename}. Please check if the server is running and the model file exists.`
-          );
+        // Camera safety net
+        frameScene(viewer);
+
+        // Expose for quick debugging if needed
+        if (typeof window !== "undefined") {
+          // eslint-disable-next-line no-underscore-dangle
+          window.__viewer = viewer;
         }
 
-        if (!isMountedRef.current) return;
-        viewer.start();
+        console.info("Viewer: model added and framed", resolution.filename);
       } catch (err) {
         console.error("Error loading model:", err);
-        if (isMountedRef.current) {
-          setError(err.message);
-        }
+        setError(err.message || "Failed to load model");
       } finally {
-        if (isMountedRef.current) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     },
-    [filename, arrayBuffer]
+    []
   );
 
-  // Initialize viewer
+  // Create/initialize a viewer
   const initializeViewer = useCallback(async () => {
     if (!viewerRef.current || !sceneSelected) return;
 
-    viewerRef.current.innerHTML = "";
+    // Tear down any previous instance to avoid double loops & VRAM leaks
+    teardownViewer(viewerInstanceRef);
+
+    const orbitPreset = sceneSelected?.orbit || "frontFocus";
+    const cam = sceneSelected?.camera || {};
+    const cameraUp = Array.isArray(cam.up) ? cam.up : [0, -1, -0.6];
+    const initialCameraPosition = Array.isArray(cam.position) ? cam.position : [-1, -4, 6];
+    const initialCameraLookAt = Array.isArray(cam.target) ? cam.target : [0, 4, 0];
+
     try {
       setIsLoading(true);
       setError(null);
 
-      // Create new viewer
       const viewer = new GaussianSplats3D.Viewer({
-        cameraUp: [0, -1, 0],
-        initialCameraPosition: [0, 0, 6],
-        initialCameraLookAt: [0, 0, 0],
+        cameraUp,
+        initialCameraPosition,
+        initialCameraLookAt,
         rootElement: viewerRef.current,
-        showLoadingUI: false,
-        antialiased: true,
+        showLoadingUI: false,        // keep only your small loader
+        antialiased: !!settings.antialiased,
+        useWorker: true,             // COI SW enables this on GitHub Pages
       });
 
-      viewerInstanceRef.current = viewer;
+      // Ensure loop is running
+      viewer.start?.();
 
-      const controls = viewer.controls;
-      if (controls) {
-        applyControlConfig(controls, orbit);
+      // Apply control preset
+      applyControlConfig(viewer.controls, orbitPreset);
+
+      viewerInstanceRef.current = viewer;
+      currentSettingsRef.current = settings;
+
+      if (typeof window !== "undefined") {
+        // eslint-disable-next-line no-underscore-dangle
+        window.__viewer = viewer;
       }
 
-      // Load model if scene is selected
-      if (sceneSelected && filename) {
-        await loadModel(viewer, filename);
+      if (selectedResolution) {
+        await loadModel(viewer, settings, selectedResolution);
       }
     } catch (err) {
       console.error("Error initializing viewer:", err);
-      setError(err.message);
+      setError(err.message || "Failed to initialize viewer");
     } finally {
       setIsLoading(false);
     }
-  }, [filename, sceneSelected, orbit]);
+  }, [settings, selectedResolution, sceneSelected, loadModel]);
 
-  // Initialize effect
+  // Mount/unmount lifecycle
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      teardownViewer(viewerInstanceRef);
     };
   }, []);
 
-  // Scene selection effect
+  // Init on scene change
   useEffect(() => {
-    if (filename && filename !== currentSceneRef.current) {
-      currentSceneRef.current = filename;
+    if (sceneSelected) initializeViewer();
+  }, [sceneSelected, initializeViewer]);
+
+  // Settings changes: avoid heavy re-init unless AA toggled
+  useEffect(() => {
+    const prev = currentSettingsRef.current || {};
+    const changedAlpha = prev.alphaThreshold !== settings.alphaThreshold;
+    const changedAA = prev.antialiased !== settings.antialiased;
+
+    if (!viewerInstanceRef.current) {
+      currentSettingsRef.current = settings;
+      return;
+    }
+
+    // AA is a construction-time option → rebuild cleanly
+    if (changedAA) {
+      currentSettingsRef.current = settings;
       initializeViewer();
+      return;
     }
-  }, [filename]);
 
-  // Reset camera
+    // If you later wire alpha to the loader, do a light reload of the scene
+    if (changedAlpha && sceneSelected && selectedResolution) {
+      currentSettingsRef.current = settings;
+      // Reload the current scene (no manual DOM removals)
+      // If the lib exposes a way to update alpha live, prefer that instead of reloading
+      viewerInstanceRef.current.clearScenes?.();
+      loadModel(viewerInstanceRef.current, settings, selectedResolution);
+    }
+  }, [settings, selectedResolution, sceneSelected, initializeViewer, loadModel]);
+
+  // Public camera reset (use scene defaults if available)
   const resetCamera = useCallback(() => {
-    if (viewerInstanceRef.current) {
-      viewerInstanceRef.current.camera.position.set(0, 0, 8);
-      viewerInstanceRef.current.controls.target.set(0, 0, 0);
-    }
-  }, []);
+    if (!viewerInstanceRef.current) return;
+    const cam = sceneSelected?.camera || {};
+    const pos = Array.isArray(cam.position) ? cam.position : [-1, -4, 6];
+    const tgt = Array.isArray(cam.target) ? cam.target : [0, 4, 0];
+    viewerInstanceRef.current.camera.position.set(...pos);
+    viewerInstanceRef.current.controls.target.set(...tgt);
+    viewerInstanceRef.current.controls.update?.();
+  }, [sceneSelected]);
 
-  return {
-    isLoading,
-    error,
-    viewerRef,
-    viewerInstanceRef,
-    resetCamera,
-  };
+  return { isLoading, error, viewerRef, viewerInstanceRef, resetCamera };
 };
