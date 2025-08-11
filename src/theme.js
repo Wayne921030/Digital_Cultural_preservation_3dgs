@@ -3,128 +3,146 @@ import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#57564F",
-      light: "#7A7A73",
-      dark: "#3A3A35",
+      main: "#8B7355",
+      light: "#A08B6F",
+      dark: "#6B5B47",
+      contrastText: "#FFFFFF",
     },
     secondary: {
-      main: "#7A7A73",
-      light: "#9A9A93",
-      dark: "#5A5A53",
+      main: "#D4C4A8",
+      light: "#E5D8C0",
+      dark: "#B8A890",
+      contrastText: "#2F2F2F",
     },
     background: {
-      default: "#DDDAD0",
-      paper: "rgba(255, 255, 255, 0.95)",
+      default: "#F8F6F2",
+      paper: "#FFFFFF",
     },
     text: {
-      primary: "#57564F",
-      secondary: "#7A7A73",
+      primary: "#2F2F2F",
+      secondary: "#6B5B47",
+    },
+    grey: {
+      50: "#F8F6F2",
+      100: "#F5F2ED",
+      200: "#E5D8C0",
+      300: "#D4C4A8",
+      400: "#A08B6F",
+      500: "#8B7355",
+      600: "#6B5B47",
+      700: "#5A4A3A",
+      800: "#4A3D2F",
+      900: "#2F2F2F",
+    },
+    colorBands: {
+      band1: "#F8F6F2",
+      band2: "#D4C4A8",
+      band3: "#8B7355",
+      band4: "#6B5B47",
     },
   },
   typography: {
-    fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
     h1: {
-      fontSize: "2.5rem",
+      fontWeight: 700,
+      color: "#2F2F2F",
+    },
+    h2: {
       fontWeight: 600,
-      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.2)",
+      color: "#2F2F2F",
     },
     h3: {
-      fontSize: "1.2rem",
       fontWeight: 600,
+      color: "#2F2F2F",
+    },
+    h4: {
+      fontWeight: 600,
+      color: "#2F2F2F",
+    },
+    h5: {
+      fontWeight: 500,
+      color: "#2F2F2F",
+    },
+    h6: {
+      fontWeight: 500,
+      color: "#2F2F2F",
     },
     body1: {
-      fontSize: "1rem",
+      color: "#2F2F2F",
+      lineHeight: 1.6,
     },
     body2: {
-      fontSize: "0.9rem",
+      color: "#6B5B47",
+      lineHeight: 1.5,
     },
-  },
-  shape: {
-    borderRadius: 15,
   },
   components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        body: {
-          background:
-            "linear-gradient(135deg, #57564F 0%, #7A7A73 50%, #DDDAD0 100%)",
-          minHeight: "100vh",
-          margin: 0,
-          padding: 0,
-        },
-      },
-    },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 25,
+          borderRadius: 8,
           textTransform: "none",
-          fontWeight: 600,
-          boxShadow: "0 4px 15px rgba(87, 86, 79, 0.3)",
-          transition: "all 0.3s ease",
-          "&:hover": {
-            transform: "translateY(-2px)",
-            boxShadow: "0 6px 20px rgba(87, 86, 79, 0.4)",
-          },
+          fontWeight: 500,
         },
         contained: {
-          background: "linear-gradient(45deg, #57564F, #7A7A73)",
-          color: "#FFFFFF",
+          boxShadow: "none",
           "&:hover": {
-            background: "linear-gradient(45deg, #7A7A73, #57564F)",
-            color: "#FFFFFF",
+            boxShadow: "0 2px 8px rgba(139, 115, 85, 0.25)",
           },
         },
-        outlined: {
-          borderColor: "#57564F",
-          color: "#57564F",
-          "&:hover": {
-            background: "rgba(87, 86, 79, 0.1)",
-          },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: "0 2px 12px rgba(139, 115, 85, 0.1)",
+          border: "1px solid rgba(139, 115, 85, 0.08)",
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          backdropFilter: "blur(10px)",
-          boxShadow: "0 8px 32px rgba(87, 86, 79, 0.15)",
-          background: "rgba(255, 255, 255, 0.95)",
+          borderRadius: 12,
         },
       },
     },
-    MuiSlider: {
+    MuiContainer: {
       styleOverrides: {
         root: {
-          color: "#57564F",
-        },
-        thumb: {
-          background: "linear-gradient(45deg, #57564F, #7A7A73)",
-          boxShadow: "0 2px 6px rgba(87, 86, 79, 0.3)",
-        },
-        track: {
-          background: "#DDDAD0",
-        },
-        rail: {
-          background: "#7A7A73",
-        },
-      },
-    },
-    MuiFormLabel: {
-      styleOverrides: {
-        root: {
-          color: "#57564F",
-          fontWeight: 600,
-        },
-      },
-    },
-    MuiTypography: {
-      styleOverrides: {
-        h6: {
-          color: "#FFFFFF",
-        },
-        body2: {
-          color: "#FFFFFF",
+          paddingLeft: "16px",
+          paddingRight: "16px",
+          maxWidth: "100%",
+          marginLeft: "auto",
+          marginRight: "auto",
+          "@media (min-width: 600px)": {
+            paddingLeft: "24px",
+            paddingRight: "24px",
+            maxWidth: "600px",
+          },
+          "@media (min-width: 900px)": {
+            paddingLeft: "32px",
+            paddingRight: "32px",
+            maxWidth: "900px",
+          },
+          "@media (min-width: 1200px)": {
+            paddingLeft: "48px",
+            paddingRight: "48px",
+            maxWidth: "1200px",
+          },
+          "@media (min-width: 1536px)": {
+            paddingLeft: "64px",
+            paddingRight: "64px",
+            maxWidth: "1400px",
+            marginLeft: "auto",
+            marginRight: "auto",
+          },
+          "@media (min-width: 1920px)": {
+            paddingLeft: "80px",
+            paddingRight: "80px",
+            maxWidth: "1600px",
+          },
         },
       },
     },

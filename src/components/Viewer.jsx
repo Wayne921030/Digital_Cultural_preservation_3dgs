@@ -1,104 +1,82 @@
-import React, { forwardRef } from 'react'
-import { Paper, Box, Typography, CircularProgress } from '@mui/material'
-import { useViewer, useAutoRotate } from '../hooks'
+import { useMemo, useState } from "react";
+import { useAvailableModels } from "@/hooks/useAvailableModels";
+import { DEVICE_CONFIGS } from "@/constants";
+import { useViewer } from "@/hooks/useViewer";
 
-const Viewer = forwardRef(({ 
-  settings, 
-  onResetCamera, 
-  isAutoRotating,
-  selectedResolution, 
-  sceneSelected
-}, ref) => {
-  
-  // Use custom Hooks to manage core logic
-  const { isLoading, error, viewerRef, viewerInstanceRef, resetCamera } = useViewer(
-    settings, 
-    selectedResolution, 
-    sceneSelected
-  )
-  
-  // Use auto-rotation Hook
-  useAutoRotate(viewerInstanceRef.current, isAutoRotating)
+const ORDER = ["low","medium","high","full"];
 
-  // Set up reset camera callback
-  React.useEffect(() => {
-    if (onResetCamera && resetCamera && viewerInstanceRef.current) {
-      onResetCamera.current = resetCamera
-    }
-  }, [onResetCamera, resetCamera, viewerInstanceRef.current])
+function pickResolution(scene, deviceKey) {
+  if (!scene?.file_types?.length) return null;
+  const ft = scene.file_types.find(t => t.type === ".splat") ?? scene.file_types[0];
+  const prefs = DEVICE_CONFIGS[deviceKey]?.recommendedResolutions ?? ORDER;
+  for (const r of prefs) {
+    const hit = ft.resolutions?.find(x => x.resolution === r);
+    if (hit) return hit;
+  }
+  for (const r of ORDER) {
+    const hit = ft.resolutions?.find(x => x.resolution === r);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+export default function Viewer() {
+  const params = new URLSearchParams(location.search);
+  const sceneId   = params.get("scene");              // e.g. Rooftop_Drone
+  const deviceKey = params.get("device") || "smartphone";
+
+  const { serverResponse, isLoading: loadingIndex } = useAvailableModels();
+
+  const sceneSelected = useMemo(() => {
+    return serverResponse?.scenes?.find(s => s.scene_name === sceneId) || null;
+  }, [serverResponse, sceneId]);
+
+  const selectedResolution = useMemo(() => {
+    return pickResolution(sceneSelected, deviceKey);
+  }, [sceneSelected, deviceKey]);
+
+  // ---- settings UI state (AA + alpha) ----
+  const [settings, setSettings] = useState({ antialiased: false, alphaThreshold: 128 });
+
+  const { viewerRef, resetCamera } = useViewer(settings, selectedResolution, sceneSelected);
+
+  if (loadingIndex || !sceneSelected || !selectedResolution) {
+    return <div style={{ padding: 16 }}>Loading scene catalogue…</div>;
+  }
 
   return (
-    <Paper 
-      elevation={3}
-      sx={{ 
-        height: 600,
-        marginBottom: 2,
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        overflow: 'hidden',
-        position: 'relative',
-      }}
-    >
-      <Box
-        ref={viewerRef}
-        sx={{
-          width: '100%',
-          height: '100%',
-          background: '#f8f9fa',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      />
-      
-      {/* Info Panel positioned on top of the viewer */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 16,
-          right: 16,
-          zIndex: 20,
-        }}
-      >
-      </Box>
-      
-      {isLoading && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            textAlign: 'center',
-            zIndex: 10,
-          }}
-        >
-          <CircularProgress 
-            size={40} 
-            sx={{ marginBottom: 2, color: 'primary.main' }} 
-          />
-          <Typography variant="body2" color="text.secondary">
-            Loading 3D model...
-          </Typography>
-        </Box>
-      )}
-      {error && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            textAlign: 'center',
-            zIndex: 10,
-          }}
-        >
-          <Typography variant="body2" color="error">
-            {error}
-          </Typography>
-        </Box>
-      )}
-    </Paper>
-  )
-})
+    <div style={{ height: "100vh", display: "grid", gridTemplateRows: "auto 1fr" }}>
+      <div style={{ padding: "12px 16px", display: "flex", gap: 12, alignItems: "center" }}>
+        <strong>{sceneSelected.scene_name}</strong>
+        <span>•</span>
+        <span>{deviceKey}</span>
+        <button onClick={resetCamera}>Reset Camera</button>
 
-export default Viewer 
+        <div style={{ marginLeft: "auto", display: "flex", gap: 16, alignItems: "center" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={!!settings.antialiased}
+              onChange={(e) => setSettings(s => ({ ...s, antialiased: e.target.checked }))}
+            />
+            Antialiasing
+          </label>
+
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            Alpha: {settings.alphaThreshold}
+            <input
+              type="range"
+              min="0"
+              max="255"
+              value={settings.alphaThreshold}
+              onChange={(e) => setSettings(s => ({ ...s, alphaThreshold: Number(e.target.value) }))}
+              style={{ width: 180 }}
+            />
+          </label>
+        </div>
+      </div>
+
+      <div id="viewer-root" ref={viewerRef} style={{ width: "100%", height: "100%", background: "#111" }} />
+    </div>
+  );
+}
