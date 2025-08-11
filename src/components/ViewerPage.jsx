@@ -1,9 +1,8 @@
-import React, { useState, Suspense } from "react";
+import React, { Suspense } from "react";
 import { Box, Typography, Button } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { DEVICE_CONFIGS } from "../constants";
 import Viewer from "./Viewer.jsx";
-
 
 const ViewerPage = ({
   onNavigateToScenes,
@@ -19,15 +18,10 @@ const ViewerPage = ({
   resetCameraRef,
   sceneSelected,
 }) => {
-  // Get orbit type from selected scene
   const orbit = selectedScene?.orbit || "frontFocus";
   const isTopDown360 = orbit === "topDown360";
   const isFrontFocus = orbit === "frontFocus";
   const deviceConfig = DEVICE_CONFIGS[selectedDevice];
-  const [settings, setSettings] = useState({
-    antialiased: false,
-    alphaThreshold: 128,
-  });
 
   return (
     <Box
@@ -38,13 +32,8 @@ const ViewerPage = ({
         maxWidth: "100vw",
       }}
     >
-      {/* 主要導航欄 */}
-      <Box
-        sx={{
-          borderBottom: "1px solid rgba(139, 115, 85, 0.1)",
-          py: 3,
-        }}
-      >
+      {/* Top bar */}
+      <Box sx={{ borderBottom: "1px solid rgba(139, 115, 85, 0.1)", py: 3 }}>
         <Box
           sx={{
             display: "flex",
@@ -54,12 +43,12 @@ const ViewerPage = ({
             mx: "auto",
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Button 
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+              <Button
                 startIcon={<ArrowBack />}
                 onClick={onNavigateToScenes}
-                sx={{ color: '#6B5B47' }}
+                sx={{ color: "#6B5B47" }}
               >
                 上一頁
               </Button>
@@ -68,14 +57,7 @@ const ViewerPage = ({
 
           {/* Control Area */}
           {selectedScene && (
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                alignItems: "center",
-                flexWrap: "wrap",
-              }}
-            >
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
               <Box
                 sx={{
                   padding: 1,
@@ -85,16 +67,10 @@ const ViewerPage = ({
                   minWidth: 200,
                 }}
               >
-                <Typography
-                  variant="body2"
-                  sx={{ color: "#6B5B47", fontSize: "0.8rem" }}
-                >
+                <Typography variant="body2" sx={{ color: "#6B5B47", fontSize: "0.8rem" }}>
                   {selectedScene?.scene_name?.replace(/_/g, " ") || "Unknown"}
                 </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ color: "#6B5B47", opacity: 0.8 }}
-                >
+                <Typography variant="caption" sx={{ color: "#6B5B47", opacity: 0.8 }}>
                   {deviceConfig?.label || "Unknown"} • {orbit}
                 </Typography>
               </Box>
@@ -103,10 +79,7 @@ const ViewerPage = ({
                 variant="contained"
                 size="small"
                 onClick={onResetCamera}
-                sx={{
-                  backgroundColor: "#8B7355",
-                  "&:hover": { backgroundColor: "#6B5B47" },
-                }}
+                sx={{ backgroundColor: "#8B7355", "&:hover": { backgroundColor: "#6B5B47" } }}
               >
                 Reset Camera
               </Button>
@@ -137,9 +110,7 @@ const ViewerPage = ({
                   size="small"
                   onClick={onToggleSwingRotate}
                   sx={{
-                    backgroundColor: isSwingRotating
-                      ? "#8B7355"
-                      : "transparent",
+                    backgroundColor: isSwingRotating ? "#8B7355" : "transparent",
                     borderColor: "#8B7355",
                     color: isSwingRotating ? "white" : "#8B7355",
                     "&:hover": {
@@ -157,13 +128,8 @@ const ViewerPage = ({
         </Box>
       </Box>
 
-      {/* Main Content Area - Full Width */}
-      <Box
-        sx={{
-          width: "100vw",
-          height: "calc(100vh - 200px)",
-        }}
-      >
+      {/* Viewer area */}
+      <Box sx={{ width: "100vw", height: "calc(100vh - 200px)" }}>
         <Suspense fallback={<div>Loading Viewer...</div>}>
           <Viewer
             onResetCamera={resetCameraRef}
@@ -173,7 +139,7 @@ const ViewerPage = ({
             sceneSelected={sceneSelected}
             selectedScene={selectedScene}
             ref={viewerRef}
-            settings={settings}
+            // 👇 No settings prop — useViewer.js owns defaults now
           />
         </Suspense>
       </Box>

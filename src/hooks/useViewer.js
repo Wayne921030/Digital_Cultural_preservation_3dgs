@@ -3,7 +3,8 @@ import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
 import { isSupportedFile } from "../utils/fileUtils";
 import { modelURL } from "../config";
 
-const DEFAULT_SETTINGS = { antialiased: false, alphaThreshold: 128 };
+// ✅ Single point of control for viewer defaults
+const DEFAULT_SETTINGS = { antialiased: false, alphaThreshold: 0 };
 
 /** Orbit / control presets */
 const controlConfigs = {
@@ -37,7 +38,6 @@ function applyControlConfig(controls, presetName) {
   if (typeof cfg.enableZoom === "boolean") controls.enableZoom = cfg.enableZoom;
 }
 
-// Ensure camera points at content after load
 function frameScene(viewer) {
   if (!viewer) return;
   if (typeof viewer.frameAll === "function") viewer.frameAll();
@@ -67,6 +67,7 @@ if (import.meta?.env?.DEV && typeof window !== "undefined") {
 }
 
 export const useViewer = (
+  // 👇 If a parent does NOT pass settings, we use DEFAULT_SETTINGS
   settings = DEFAULT_SETTINGS,
   selectedResolution,
   sceneSelected
@@ -80,7 +81,7 @@ export const useViewer = (
 
   // Load model into an existing viewer
   const loadModel = useCallback(
-    async (viewer, _settings, resolution) => {
+    async (viewer, setts, resolution) => {
       try {
         setIsLoading(true);
         setError(null);
@@ -95,6 +96,8 @@ export const useViewer = (
         await viewer.addSplatScene(url, {
           showLoadingUI: false, // only app loader
           position: [0, 0, 0],
+          // respect the alpha threshold coming from settings/defaults
+          splatAlphaRemovalThreshold: Number(setts?.alphaThreshold ?? DEFAULT_SETTINGS.alphaThreshold),
         });
 
         viewer.start?.();
@@ -138,14 +141,17 @@ export const useViewer = (
       setIsLoading(true);
       setError(null);
 
+      const useWorkerFlag =
+        typeof crossOriginIsolated !== "undefined" ? crossOriginIsolated : true;
+
       const viewer = new GaussianSplats3D.Viewer({
         cameraUp,
         initialCameraPosition,
         initialCameraLookAt,
         rootElement: viewerRef.current,
         showLoadingUI: false,
-        antialiased: safe.antialiased,
-        useWorker: typeof crossOriginIsolated !== "undefined" ? crossOriginIsolated : true,
+        antialiased: safe.antialiased,   // 👈 AA obeys default/settings
+        useWorker: useWorkerFlag,        // dev-safe: falls back if COI not ready
       });
 
       viewer.start?.();
@@ -191,7 +197,11 @@ export const useViewer = (
       antialiased: !!(settings?.antialiased ?? DEFAULT_SETTINGS.antialiased),
       alphaThreshold: Number(settings?.alphaThreshold ?? DEFAULT_SETTINGS.alphaThreshold),
     };
-    const changedAlpha = (prev.alphaThreshold ?? 128) !== (next.alphaThreshold ?? 128);
+
+    const changedAlpha =
+      (prev.alphaThreshold ?? DEFAULT_SETTINGS.alphaThreshold) !==
+      (next.alphaThreshold ?? DEFAULT_SETTINGS.alphaThreshold);
+
     const changedAA = !!prev.antialiased !== !!next.antialiased;
 
     if (!viewerInstanceRef.current) {
@@ -201,7 +211,7 @@ export const useViewer = (
 
     if (changedAA) {
       currentSettingsRef.current = next;
-      initializeViewer();
+      initializeViewer(); // rebuild (constructor option)
       return;
     }
 
@@ -209,9 +219,7 @@ export const useViewer = (
       currentSettingsRef.current = next;
       try {
         viewerInstanceRef.current.clearScenes?.();
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
       loadModel(viewerInstanceRef.current, next, selectedResolution);
     }
   }, [settings, selectedResolution, sceneSelected, initializeViewer, loadModel]);
