@@ -1,6 +1,6 @@
-import React, { forwardRef } from 'react'
-import { Paper, Box, Typography, CircularProgress } from '@mui/material'
-import { useViewer, useAutoRotate } from '../hooks'
+import React, { forwardRef } from "react";
+import { Paper, Box, Typography, CircularProgress } from "@mui/material";
+import { useViewer, useAutoRotate } from "../hooks";
 
 const Viewer = forwardRef(({ 
   onResetCamera, 
@@ -33,10 +33,10 @@ const Viewer = forwardRef(({
   }, [onResetCamera, resetCamera, viewerInstanceRef.current])
 
   return (
-    <Paper 
-      elevation={3}
+    <Box 
       sx={{ 
-        height: 600,
+        height: '100%',
+        minHeight: 600,
         marginBottom: 2,
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(10px)',
@@ -102,7 +102,7 @@ const Viewer = forwardRef(({
           </Typography>
         </Box>
       )}
-    </Paper>
+    </Box>
   )
 })
 

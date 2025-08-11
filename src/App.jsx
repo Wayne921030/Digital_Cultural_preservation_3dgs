@@ -1,103 +1,177 @@
-import React, { useRef, Suspense, lazy } from 'react'
-import { ThemeProvider, CssBaseline, Box } from '@mui/material'
-import theme from './theme'
-import Header from './components/Header'
-import Controls from './components/Controls'
-const Viewer = lazy(() => import('./components/Viewer'))
-import DeviceSelector from './components/DeviceSelector'
-import SceneSelector from './components/SceneSelector'
-import LoadingScreen from './components/LoadingScreen'
-import { useAppSettings, useAvailableModels } from './hooks'
-import { readFileAsArrayBuffer } from './utils/fileUtils'
+import React, { useRef, Suspense, lazy, useState } from "react";
+import { ThemeProvider, CssBaseline, Box } from "@mui/material";
+import theme from "./theme";
+import Header from "./components/Header";
+const HomePage = lazy(() => import("./components/HomePage"));
+const TempleIntroPage = lazy(() => import("./components/TempleIntroPage"));
+const ViewerPage = lazy(() => import("./components/ViewerPage"));
+import DeviceSelector from "./components/DeviceSelector";
+import SceneSelector from "./components/SceneSelector";
+import LoadingScreen from "./components/LoadingScreen";
+import { useAppSettings, useAvailableModels } from "./hooks";
+import { readFileAsArrayBuffer } from "./utils/fileUtils";
+import Footer from "./components/Footer";
 
 function App() {
+  const [currentPage, setCurrentPage] = useState("home"); // 'home', 'temple', 'scenes', 'viewer'
+  const [selectedSceneFromTemple, setSelectedSceneFromTemple] = useState(null);
+
   // Use custom Hook to manage settings
-  const { 
-    isAutoRotating, 
-    isSwingRotating, 
-    selectedDevice, 
+  const {
+    isAutoRotating,
+    isSwingRotating,
+    selectedDevice,
     selectedScene,
-    selectedFileType,
     selectedResolution,
-    deviceSelected,
     sceneSelected,
-    toggleAutoRotate, 
-    toggleSwingRotate, 
+    toggleAutoRotate,
+    toggleSwingRotate,
     updateSelectedDevice,
-    updateSceneSelection,
-    resetDeviceSelection,
-    resetSceneSelection
-  } = useAppSettings()
+    updateSceneSelection
+  } = useAppSettings();
 
   // Use custom Hook to check available models
-  const { 
-    scenes, 
-    deviceConfigs, 
-    isLoading: modelsLoading, 
+  const {
+    scenes,
+    deviceConfigs,
+    isLoading: modelsLoading,
     error: modelsError,
-    refreshModels
-  } = useAvailableModels()
-  
+    refreshModels,
+  } = useAvailableModels();
+
   const handleUploadSplat = async (file) => {
     if (!file) return;
-    
+
     try {
       // Read file as ArrayBuffer
       const arrayBuffer = await readFileAsArrayBuffer(file);
-      
+
       // Create dummy scene metadata for local upload
       const sceneObj = { scene_name: file.name };
-      const fileTypeObj = { type: 'local', name: 'Local Upload' };
+      const fileTypeObj = { type: "local", name: "Local Upload" };
       const resolution = {
         filename: file.name,
         size: file.size,
         arrayBuffer,
       };
       updateSceneSelection(sceneObj, fileTypeObj, resolution);
+      setCurrentPage("viewer");
     } catch (error) {
-      console.error('Error reading file:', error);
-      alert('Failed to read file. Please try again.');
+      console.error("Error reading file:", error);
+      alert("Failed to read file. Please try again.");
     }
   };
 
-  const resetCameraRef = useRef(null)
-  const viewerRef = useRef(null)
+  const resetCameraRef = useRef(null);
+  const viewerRef = useRef(null);
 
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          maxWidth: 1400,
-          margin: '0 auto',
-          padding: 2,
-        }}
-      >
-        <Header />
-        
-        {modelsLoading ? (
-          <LoadingScreen isLoading={modelsLoading} error={modelsError} onRetry={refreshModels} />
-        ) : !deviceSelected ? (
-          <DeviceSelector 
-            deviceConfigs={deviceConfigs}
-            onDeviceSelect={updateSelectedDevice}
-            selectedDevice={selectedDevice}
-          />
-        ) : !sceneSelected ? (
-          <SceneSelector 
+  // Navigation
+  const handleNavigateToTemple = () => {
+    setCurrentPage("temple");
+  };
+
+  const handleNavigateToScenes = () => {
+    setCurrentPage("scenes");
+  };
+
+  const handleBackToHome = () => {
+    setCurrentPage("home");
+    setSelectedSceneFromTemple(null);
+  };
+
+  const handleSceneSelectFromTemple = (scene) => {
+    setSelectedSceneFromTemple(scene);
+    setCurrentPage("device-selection");
+  };
+
+  const handleDeviceSelect = (device) => {
+    updateSelectedDevice(device);
+    if (selectedSceneFromTemple) {
+      // 從保生宮介紹頁面來的流程
+      updateSceneSelection(
+        selectedSceneFromTemple,
+        selectedSceneFromTemple.file_types[0],
+        selectedSceneFromTemple.file_types[0].resolutions[0]
+      );
+      setCurrentPage("viewer");
+    } else {
+      // 從場景選擇器來的流程
+      setCurrentPage("scene-selection");
+    }
+  };
+
+  const handleSceneSelectFromSelector = (scene, fileType, resolution) => {
+    updateSceneSelection(scene, fileType, resolution);
+    setCurrentPage("viewer");
+  };
+
+  const handleDeviceSelectFromScene = (device) => {
+    updateSelectedDevice(device);
+    // Stay on the same page (scenes) but now with device selected
+  };
+
+  // render current page
+  const renderCurrentPage = () => {
+    switch (currentPage) {
+      case "home":
+        return (
+          <Suspense fallback={<div>Loading Home Page...</div>}>
+            <HomePage
+              onNavigateToTemple={handleNavigateToTemple}
+              onNavigateToScenes={handleNavigateToScenes}
+            />
+          </Suspense>
+        );
+
+      case "temple":
+        return (
+          <Suspense fallback={<div>Loading Temple Intro...</div>}>
+            <TempleIntroPage
+              onBackToHome={handleBackToHome}
+              onSelectScene={handleSceneSelectFromTemple}
+              scenes={scenes}
+            />
+          </Suspense>
+        );
+
+      case "scenes":
+        return (
+          <SceneSelector
             scenes={scenes}
             selectedDevice={selectedDevice}
-            onSceneSelect={updateSceneSelection}
-            onBackToDeviceSelection={resetDeviceSelection}
+            onSceneSelect={handleSceneSelectFromSelector}
+            onDeviceSelect={handleDeviceSelectFromScene}
+            onBackToHome={handleBackToHome}
             selectedScene={selectedScene}
             onUploadSplat={handleUploadSplat}
           />
-        ) : (
-          <>
-            <Controls 
+        );
+
+      case "device-selection":
+        return (
+          <DeviceSelector
+            deviceConfigs={deviceConfigs}
+            onDeviceSelect={handleDeviceSelect}
+            selectedDevice={selectedDevice}
+          />
+        );
+
+      case "scene-selection":
+        return (
+          <SceneSelector
+            scenes={scenes}
+            selectedDevice={selectedDevice}
+            onSceneSelect={handleSceneSelectFromSelector}
+            selectedScene={selectedScene}
+            onUploadSplat={handleUploadSplat}
+          />
+        );
+
+      case "viewer":
+        return (
+          <Suspense fallback={<div>Loading Viewer Page...</div>}>
+            <ViewerPage
+              onNavigateToScenes={handleNavigateToScenes}
               onResetCamera={() => resetCameraRef.current?.()}
               onToggleAutoRotate={toggleAutoRotate}
               onToggleSwingRotate={toggleSwingRotate}
@@ -106,25 +180,45 @@ function App() {
               selectedScene={selectedScene}
               selectedResolution={selectedResolution}
               selectedDevice={selectedDevice}
-              onResetSceneSelection={resetSceneSelection}
+              viewerRef={viewerRef}
+              resetCameraRef={resetCameraRef}
+              sceneSelected={sceneSelected}
             />
-            <Suspense fallback={<div>Loading Viewer...</div>}>
-              <Viewer 
-                onResetCamera={resetCameraRef}
-                isAutoRotating={isAutoRotating}
-                isSwingRotating={isSwingRotating}
-                selectedResolution={selectedResolution}
-                sceneSelected={sceneSelected}
-                selectedScene={selectedScene}
-                ref={viewerRef}
-                
-              />
-            </Suspense>
-          </>
-        )}
+          </Suspense>
+        );
+
+      default:
+        return (
+          <Suspense fallback={<div>Loading Home Page...</div>}>
+            <HomePage
+              onNavigateToTemple={handleNavigateToTemple}
+              onNavigateToScenes={handleNavigateToScenes}
+            />
+          </Suspense>
+        );
+    }
+  };
+
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box>
+        <Header/>
+        <Box sx={{ flex: 1, width: "100%" }}>
+          {modelsLoading ? (
+            <LoadingScreen
+              isLoading={modelsLoading}
+              error={modelsError}
+              onRetry={refreshModels}
+            />
+          ) : (
+            renderCurrentPage()
+          )}
+        </Box>
+        {currentPage !== "viewer" && <Footer />}
       </Box>
     </ThemeProvider>
-  )
+  );
 }
 
-export default App 
+export default App;

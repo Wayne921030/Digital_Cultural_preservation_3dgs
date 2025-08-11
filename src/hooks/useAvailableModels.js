@@ -88,7 +88,15 @@ export const useAvailableModels = () => {
           }
         }
 
-        setDeviceConfigs(availableDeviceConfigs);
+        // If no compatible devices found, show all device configs anyway
+        if (Object.keys(availableDeviceConfigs).length === 0) {
+          console.warn(
+            "No compatible devices found, showing all device configs"
+          );
+          setDeviceConfigs(desiredDeviceConfigs);
+        } else {
+          setDeviceConfigs(availableDeviceConfigs);
+        }
       } else {
         // Fallback for old structure or error
         console.warn("Unexpected server response format:", serverResponse);
