@@ -23,8 +23,9 @@ import {
 } from '@mui/icons-material'
 import { RESOLUTION_QUALITY, DEVICE_CONFIGS } from '../constants'
 import { formatFileSize, getBestFileType } from '../utils/fileUtils'
+import TabBar from './TabBar'
 
-function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, onBackToHome, selectedScene, onUploadSplat }) {
+function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, onBackToHome, selectedScene, onUploadSplat, categoryFilter, currentPage, onTabChange }) {
   const [isDragOver, setIsDragOver] = React.useState(false);
   
   // Helper functions for device selection
@@ -122,6 +123,17 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, 
   const deviceConfig = selectedDevice ? DEVICE_CONFIGS[selectedDevice] : null
   const recommendedResolutions = deviceConfig?.recommendedResolutions || []
 
+  // Filter scenes by category if specified
+  const filteredScenes = categoryFilter 
+    ? scenes.filter(scene => {
+        const category = scene.category?.toLowerCase();
+        const sceneName = (scene.scene_name || scene.name || "").toLowerCase();
+        
+        return category === categoryFilter.toLowerCase() || 
+               sceneName.includes(categoryFilter.toLowerCase());
+      })
+    : scenes;
+
   // Filter scenes and get the best file type and resolution for each scene
   const getScenesWithBestOptions = (scenes, deviceResolutions) => {
     // If no device is selected, show all scenes without filtering
@@ -145,7 +157,7 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, 
     }).filter(scene => scene !== null);
   }
 
-  const scenesWithBestOptions = getScenesWithBestOptions(scenes, recommendedResolutions)
+  const scenesWithBestOptions = getScenesWithBestOptions(filteredScenes, recommendedResolutions)
 
   // Get scene preview image
   const getSceneImage = (sceneName) => {
@@ -158,6 +170,15 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, 
         return 'Main_entrance.png'
       case 'Interior':
         return 'Interior.png'
+      case 'chenghuang1':
+      case 'chenghuang_main':
+        return 'chenghuang/chenghuang1.jpeg'
+      case 'chenghuang2':
+      case 'chenghuang_interior':
+        return 'chenghuang/chenghuang2.jpeg'
+      case 'chenghuang3':
+      case 'chenghuang_rooftop':
+        return 'chenghuang/chenghuang3.jpeg'
       default:
         return null
     }
@@ -168,22 +189,12 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, 
       background: '#F8F6F2',
       minHeight: 'calc(100vh - 64px)'
     }}>
-      {/* Navigation Bar */}
-      <Box sx={{ py: 2}}>
-        <Container maxWidth="xl">
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Button 
-                startIcon={<ArrowBackIcon />}
-                onClick={onBackToHome}
-                sx={{ color: '#6B5B47' }}
-              >
-                返回首頁
-              </Button>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
+
+
+      {/* TabBar */}
+      {currentPage && onTabChange && (
+        <TabBar currentPage={currentPage} onTabChange={onTabChange} />
+      )}
 
               <Container maxWidth="xl" sx={{ py: 4 }}>
         <Paper 

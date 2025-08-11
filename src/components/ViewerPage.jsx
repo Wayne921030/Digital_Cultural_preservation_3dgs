@@ -32,8 +32,12 @@ const ViewerPage = ({
         maxWidth: "100vw",
       }}
     >
-      {/* Top bar */}
-      <Box sx={{ borderBottom: "1px solid rgba(139, 115, 85, 0.1)", py: 3 }}>
+      <Box
+        sx={{
+          borderBottom: "1px solid rgba(139, 115, 85, 0.1)",
+          py: 3,
+        }}
+      >
         <Box
           sx={{
             display: "flex",
@@ -57,17 +61,19 @@ const ViewerPage = ({
 
           {/* Control Area */}
           {selectedScene && (
-            <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
-              <Box
-                sx={{
-                  padding: 1,
-                  background: "rgba(139, 115, 85, 0.1)",
-                  borderRadius: 1,
-                  textAlign: "center",
-                  minWidth: 200,
-                }}
-              >
-                <Typography variant="body2" sx={{ color: "#6B5B47", fontSize: "0.8rem" }}>
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <Box>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "#6B5B47", fontSize: "0.8rem" }}
+                >
                   {selectedScene?.scene_name?.replace(/_/g, " ") || "Unknown"}
                 </Typography>
                 <Typography variant="caption" sx={{ color: "#6B5B47", opacity: 0.8 }}>
@@ -132,7 +138,11 @@ const ViewerPage = ({
       <Box sx={{ width: "100vw", height: "calc(100vh - 200px)" }}>
         <Suspense fallback={<div>Loading Viewer...</div>}>
           <Viewer
-            onResetCamera={resetCameraRef}
+            onResetCamera={(resetCameraFn) => {
+              if (resetCameraRef && typeof resetCameraRef === 'object') {
+                resetCameraRef.current = resetCameraFn;
+              }
+            }}
             isAutoRotating={isAutoRotating}
             isSwingRotating={isSwingRotating}
             selectedResolution={selectedResolution}

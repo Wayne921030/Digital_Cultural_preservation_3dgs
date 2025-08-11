@@ -39,19 +39,31 @@ export const RESOLUTION_LABELS = {
 // (highest first so Desktop will pick full when available)
 export const DEVICE_CONFIGS = {
   smartphone: {
+    name: "Smartphone",
     label: "Smartphone",
+    description: "Suitable for mobile phones and tablets, providing smooth 3D experience",
+    features: ["Low power optimization", "Touch controls", "Portability"],
     recommendedResolutions: ["low"],
   },
   laptopWeak: {
+    name: "Laptop (Integrated GPU)",
     label: "Laptop (Integrated GPU)",
+    description: "Suitable for general laptops, balancing performance and battery life",
+    features: ["Performance balance", "Battery optimization", "Thermal management"],
     recommendedResolutions: ["medium", "low"],
   },
   laptopStrong: {
+    name: "Laptop (Dedicated GPU)",
     label: "Laptop (dGPU)",
+    description: "Suitable for high-performance laptops, providing better 3D rendering quality",
+    features: ["High performance", "Dedicated graphics", "Professional applications"],
     recommendedResolutions: ["high", "medium"],
   },
   desktopStrong: {
+    name: "Desktop / Workstation",
     label: "Desktop / Workstation",
+    description: "Suitable for professional workstations and gaming PCs, providing the best 3D experience",
+    features: ["Highest quality", "Professional performance", "Multi-monitor support"],
     recommendedResolutions: ["full", "high", "medium"],
   },
 };

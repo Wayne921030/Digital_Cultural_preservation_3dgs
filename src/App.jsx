@@ -3,7 +3,8 @@ import { ThemeProvider, CssBaseline, Box } from "@mui/material";
 import theme from "./theme";
 import Header from "./components/Header";
 const HomePage = lazy(() => import("./components/HomePage"));
-const TempleIntroPage = lazy(() => import("./components/TempleIntroPage"));
+const TempleIntroPage = lazy(() => import("./components/introPages/TempleIntroPage"));
+const ChenghuangIntroPage = lazy(() => import("./components/introPages/ChenghuangIntroPage"));
 const ViewerPage = lazy(() => import("./components/ViewerPage"));
 import DeviceSelector from "./components/DeviceSelector";
 import SceneSelector from "./components/SceneSelector";
@@ -70,6 +71,10 @@ function App() {
     setCurrentPage("temple");
   };
 
+  const handleNavigateToChenghuang = () => {
+    setCurrentPage("chenghuang");
+  };
+
   const handleNavigateToScenes = () => {
     setCurrentPage("scenes");
   };
@@ -79,6 +84,19 @@ function App() {
     setSelectedSceneFromTemple(null);
   };
 
+  const handleTabChange = (event, newValue) => {
+    setCurrentPage(newValue);
+    if (newValue === "scenes") {
+      handleNavigateToScenes();
+    } else if (newValue === "baosheng") {
+      handleNavigateToTemple();
+    } else if (newValue === "chenghuang") {
+      handleNavigateToChenghuang();
+    } else if (newValue === "home") {
+      handleBackToHome();
+    }
+  };
+
   const handleSceneSelectFromTemple = (scene) => {
     setSelectedSceneFromTemple(scene);
     setCurrentPage("device-selection");
@@ -86,7 +104,11 @@ function App() {
 
   const handleDeviceSelect = (device) => {
     updateSelectedDevice(device);
-    if (selectedSceneFromTemple) {
+    if (selectedSceneFromTemple && 
+        selectedSceneFromTemple.file_types && 
+        selectedSceneFromTemple.file_types.length > 0 &&
+        selectedSceneFromTemple.file_types[0].resolutions &&
+        selectedSceneFromTemple.file_types[0].resolutions.length > 0) {
       // 從保生宮介紹頁面來的流程
       updateSceneSelection(
         selectedSceneFromTemple,
@@ -117,8 +139,8 @@ function App() {
         return (
           <Suspense fallback={<div>Loading Home Page...</div>}>
             <HomePage
-              onNavigateToTemple={handleNavigateToTemple}
-              onNavigateToScenes={handleNavigateToScenes}
+              currentPage={currentPage}
+              onTabChange={handleTabChange}
             />
           </Suspense>
         );
@@ -130,6 +152,21 @@ function App() {
               onBackToHome={handleBackToHome}
               onSelectScene={handleSceneSelectFromTemple}
               scenes={scenes}
+              currentPage="baosheng"
+              onTabChange={handleTabChange}
+            />
+          </Suspense>
+        );
+
+      case "chenghuang":
+        return (
+          <Suspense fallback={<div>Loading Chenghuang Temple Intro...</div>}>
+            <ChenghuangIntroPage
+              onBackToHome={handleBackToHome}
+              onSelectScene={handleSceneSelectFromTemple}
+              scenes={scenes}
+              currentPage="chenghuang"
+              onTabChange={handleTabChange}
             />
           </Suspense>
         );
@@ -144,6 +181,9 @@ function App() {
             onBackToHome={handleBackToHome}
             selectedScene={selectedScene}
             onUploadSplat={handleUploadSplat}
+            categoryFilter={null} // Show all scenes in general scene selector
+            currentPage="scenes"
+            onTabChange={handleTabChange}
           />
         );
 
@@ -153,6 +193,8 @@ function App() {
             deviceConfigs={deviceConfigs}
             onDeviceSelect={handleDeviceSelect}
             selectedDevice={selectedDevice}
+            currentPage="baosheng"
+            onTabChange={handleTabChange}
           />
         );
 
@@ -164,6 +206,9 @@ function App() {
             onSceneSelect={handleSceneSelectFromSelector}
             selectedScene={selectedScene}
             onUploadSplat={handleUploadSplat}
+            categoryFilter={null}
+            currentPage="scenes"
+            onTabChange={handleTabChange}
           />
         );
 
@@ -191,8 +236,8 @@ function App() {
         return (
           <Suspense fallback={<div>Loading Home Page...</div>}>
             <HomePage
-              onNavigateToTemple={handleNavigateToTemple}
-              onNavigateToScenes={handleNavigateToScenes}
+              currentPage={currentPage}
+              onTabChange={handleTabChange}
             />
           </Suspense>
         );

@@ -23,10 +23,17 @@ function pickResolution(scene, deviceKey) {
 }
 
 export default forwardRef(function Viewer(props, outerRef) {
-  const { settings, selectedResolution, sceneSelected } = props;
+  const { settings, selectedResolution, sceneSelected, onResetCamera } = props;
 
   const { viewerRef, resetCamera, isLoading, error } =
     useViewer(settings, selectedResolution, sceneSelected);
+
+  // Expose resetCamera function to parent through onResetCamera ref
+  React.useEffect(() => {
+    if (onResetCamera && typeof onResetCamera === 'function') {
+      onResetCamera(resetCamera);
+    }
+  }, [onResetCamera, resetCamera]);
 
   // merge our internal ref with the parent ref (so both get the node)
   const setRefs = useCallback((node) => {
