@@ -80,6 +80,10 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
           position: [0, 0, 0],
         });
 
+        // Kick the render loop (some builds require this)
+        viewer.start?.();
+        viewer.render?.();
+
         frameScene(viewer);
         console.info("Viewer: model added and framed", resolution.filename);
       } catch (err) {
@@ -115,12 +119,16 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         rootElement: viewerRef.current,
         showLoadingUI: true,
         antialiased: !!settings.antialiased,
-        useWorker: true, // enabled by COI service worker in index.html
+        useWorker: true,
       });
+
+      // Ensure render loop is active
+      viewer.start?.();
 
       applyControlConfig(viewer.controls, orbitPreset);
 
       viewerInstanceRef.current = viewer;
+      if (typeof window !== 'undefined') { window.__viewer = viewer; }
       currentSettingsRef.current = settings;
 
       if (selectedResolution) {
