@@ -65,7 +65,7 @@ export const DEVICE_CONFIGS = {
       "Balanced performance",
       "Integrated GPU optimized",
     ],
-    recommendedResolutions: ["low", "medium"],
+    recommendedResolutions: ["medium", "low"],
   },
   laptopStrong: {
     name: "Laptop (Strong GPU)",
@@ -76,7 +76,7 @@ export const DEVICE_CONFIGS = {
       "Good performance",
       "Dedicated GPU optimized",
     ],
-    recommendedResolutions: ["medium", "high"],
+    recommendedResolutions: ["high", "medium"],
   },
   desktopStrong: {
     name: "Desktop (Strong GPU)",
@@ -87,7 +87,7 @@ export const DEVICE_CONFIGS = {
       "Maximum quality",
       "High-end GPU optimized",
     ],
-    recommendedResolutions: ["high", "full"],
+    recommendedResolutions: ["full", "high"],
   },
 };
 
