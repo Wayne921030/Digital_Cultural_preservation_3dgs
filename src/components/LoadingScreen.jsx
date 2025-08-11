@@ -29,16 +29,16 @@ function LoadingScreen({ isLoading, error, onRetry }) {
         <Box sx={{ textAlign: 'center' }}>
           <CircularProgress 
             size={60} 
-            sx={{ marginBottom: 3, color: 'primary.main' }} 
+            sx={{ marginBottom: 3, color: '#8B7355' }} 
           />
-          <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: 600, color: '#2c3e50' }}>
+          <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: 600, color: '#6B5B47' }}>
             Checking Available Models
           </Typography>
-          <Typography variant="body1" sx={{ color: '#7f8c8d', maxWidth: 500 }}>
+          <Typography variant="body1" sx={{ color: '#6B5B47', maxWidth: 500 }}>
             Connecting to server and checking which 3D models are available for your device...
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
-            <DownloadIcon sx={{ fontSize: 40, color: 'primary.main', opacity: 0.7 }} />
+            <DownloadIcon sx={{ fontSize: 40, color: '#8B7355', opacity: 0.7 }} />
           </Box>
         </Box>
       ) : error ? (
@@ -51,11 +51,11 @@ function LoadingScreen({ isLoading, error, onRetry }) {
               {error}
             </Typography>
           </Alert>
-          <Typography variant="body1" sx={{ color: '#7f8c8d', marginBottom: 3 }}>
+          <Typography variant="body1" sx={{ color: '#6B5B47', marginBottom: 3 }}>
             Unable to connect to the model server. Please check if the server is running at http://127.0.0.1:8000
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ color: '#7f8c8d' }}>
+            <Typography variant="body2" sx={{ color: '#6B5B47' }}>
               Make sure the server is running with: python -m http.server 8000
             </Typography>
             {onRetry && (
@@ -63,7 +63,11 @@ function LoadingScreen({ isLoading, error, onRetry }) {
                 variant="contained"
                 onClick={onRetry}
                 startIcon={<RefreshIcon />}
-                sx={{ marginTop: 2 }}
+                sx={{ 
+                  marginTop: 2,
+                  backgroundColor: '#8B7355',
+                  '&:hover': { backgroundColor: '#6B5B47' }
+                }}
               >
                 Retry Connection
               </Button>
