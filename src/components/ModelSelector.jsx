@@ -143,7 +143,7 @@ function ModelSelector({ onModelSelect, selectedModel, modelConfigs }) {
                     marginBottom: 1,
                     color: isAvailable ? (selectedModel === key ? color : 'text.primary') : '#bdc3c7'
                   }}>
-                    {config.name}
+                    {config.label}
                   </Typography>
                   <Typography variant="body2" sx={{ 
                     color: isAvailable ? 'text.secondary' : '#bdc3c7', 

@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
-import { useAvailableModels } from "@/hooks/useAvailableModels";
-import { DEVICE_CONFIGS } from "@/constants";
-import { useViewer } from "@/hooks/useViewer";
+import { useAvailableModels } from "../hooks/useAvailableModels.js";
+import { DEVICE_CONFIGS } from "../constants/index.js";
+import { useViewer } from "../hooks/useViewer";
+import React, { forwardRef, useCallback } from "react";
+
 
 const ORDER = ["low","medium","high","full"];
 
@@ -20,63 +22,25 @@ function pickResolution(scene, deviceKey) {
   return null;
 }
 
-export default function Viewer() {
-  const params = new URLSearchParams(location.search);
-  const sceneId   = params.get("scene");              // e.g. Rooftop_Drone
-  const deviceKey = params.get("device") || "smartphone";
+export default forwardRef(function Viewer(props, outerRef) {
+  const { settings, selectedResolution, sceneSelected } = props;
 
-  const { serverResponse, isLoading: loadingIndex } = useAvailableModels();
+  const { viewerRef, resetCamera, isLoading, error } =
+    useViewer(settings, selectedResolution, sceneSelected);
 
-  const sceneSelected = useMemo(() => {
-    return serverResponse?.scenes?.find(s => s.scene_name === sceneId) || null;
-  }, [serverResponse, sceneId]);
-
-  const selectedResolution = useMemo(() => {
-    return pickResolution(sceneSelected, deviceKey);
-  }, [sceneSelected, deviceKey]);
-
-  // ---- settings UI state (AA + alpha) ----
-  const [settings, setSettings] = useState({ antialiased: false, alphaThreshold: 128 });
-
-  const { viewerRef, resetCamera } = useViewer(settings, selectedResolution, sceneSelected);
-
-  if (loadingIndex || !sceneSelected || !selectedResolution) {
-    return <div style={{ padding: 16 }}>Loading scene catalogue…</div>;
-  }
+  // merge our internal ref with the parent ref (so both get the node)
+  const setRefs = useCallback((node) => {
+    viewerRef.current = node;
+    if (typeof outerRef === "function") outerRef(node);
+    else if (outerRef && typeof outerRef === "object") outerRef.current = node;
+  }, [viewerRef, outerRef]);
 
   return (
-    <div style={{ height: "100vh", display: "grid", gridTemplateRows: "auto 1fr" }}>
-      <div style={{ padding: "12px 16px", display: "flex", gap: 12, alignItems: "center" }}>
-        <strong>{sceneSelected.scene_name}</strong>
-        <span>•</span>
-        <span>{deviceKey}</span>
-        <button onClick={resetCamera}>Reset Camera</button>
-
-        <div style={{ marginLeft: "auto", display: "flex", gap: 16, alignItems: "center" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <input
-              type="checkbox"
-              checked={!!settings.antialiased}
-              onChange={(e) => setSettings(s => ({ ...s, antialiased: e.target.checked }))}
-            />
-            Antialiasing
-          </label>
-
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            Alpha: {settings.alphaThreshold}
-            <input
-              type="range"
-              min="0"
-              max="255"
-              value={settings.alphaThreshold}
-              onChange={(e) => setSettings(s => ({ ...s, alphaThreshold: Number(e.target.value) }))}
-              style={{ width: 180 }}
-            />
-          </label>
-        </div>
-      </div>
-
-      <div id="viewer-root" ref={viewerRef} style={{ width: "100%", height: "100%", background: "#111" }} />
+    <div style={{ height: "100%", width: "100%" }}>
+      {/* header / controls … */}
+      <div id="viewer-root" ref={setRefs} style={{ height: "100%", width: "100%" }} />
+      {isLoading && <div style={{ padding: 16 }}>Loading scene catalogue…</div>}
+      {error && <div style={{ padding: 16, color: "crimson" }}>{String(error)}</div>}
     </div>
   );
-}
+});

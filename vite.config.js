@@ -1,35 +1,16 @@
-// vite.config.js
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      "/models": {
-        target: "https://dr4wh7nh38tn3.cloudfront.net",
-        changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/models/, "/models"),
-      },
-      "/img": {
-        target: "https://d7yb14d27s1sv.cloudfront.net",
-        changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/img/, "/img"),
-      },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@components": path.resolve(__dirname, "./src/components"),
+      "@hooks": path.resolve(__dirname, "./src/hooks"),
+      "@constants": path.resolve(__dirname, "./src/constants"),
+      "@utils": path.resolve(__dirname, "./src/utils"),
     },
   },
-  optimizeDeps: { include: ["@mkkellogg/gaussian-splats-3d"] },
-  publicDir: "public",
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          "react-vendor": ["react", "react-dom"],
-          "three-vendor": ["three", "@mkkellogg/gaussian-splats-3d"],
-        },
-      },
-    },
-  },
-  define: { "process.env.NODE_ENV": JSON.stringify("production") },
-  assetsInclude: ["**/*.spz", "**/*.ply", "**/*.splat"],
 });

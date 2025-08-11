@@ -246,7 +246,7 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, 
                             color: '#6B5B47',
                             fontWeight: selectedDevice === deviceKey ? 'bold' : 'normal'
                           }}>
-                            {deviceConfig.name}
+                            {deviceConfig.label}
                           </Typography>
                         </Box>
                         <Typography variant="caption" sx={{ 
@@ -268,7 +268,7 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, 
             {!isDragOver && (
               <Typography variant="body1" sx={{ color: '#6B5B47', marginBottom: 2 }}>
                 {selectedDevice ? 
-                  `點擊場景以使用 ${deviceConfig?.name} 的最佳格式和解析度查看。` :
+                  `點擊場景以使用 ${deviceConfig?.label} 的最佳格式和解析度查看。` :
                   '請先選擇您的設備類型，然後點擊場景進行查看。'
                 }
               </Typography>
@@ -305,7 +305,7 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, 
                 No Compatible Scenes
               </Typography>
               <Typography variant="body2" sx={{ color: '#6B5B47', marginBottom: 3 }}>
-                No scenes are available with resolutions compatible with your selected device ({deviceConfig?.name}).
+                No scenes are available with resolutions compatible with your selected device ({deviceConfig?.label}).
               </Typography>
             </Box>
           ) : (

@@ -3,6 +3,8 @@ import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
 import { isSupportedFile } from "../utils/fileUtils";
 import { modelURL } from "../config";
 
+const DEFAULT_SETTINGS = { antialiased: false, alphaThreshold: 128 };
+
 /** Orbit / control presets */
 const controlConfigs = {
   base: { minPolarAngle: 0, maxPolarAngle: Math.PI, enablePan: true, enableZoom: true },
@@ -49,20 +51,32 @@ function teardownViewer(viewerRefObj) {
   if (!v) return;
   try {
     v.stop?.();     // stop render loop (if exposed)
-    v.dispose?.();  // dispose handles scenes + GL + DOM internally
+    v.dispose?.();  // dispose internals safely
   } catch {
-    // ignore best-effort errors
+    /* ignore best-effort errors */
   }
   viewerRefObj.current = null;
 }
 
-export const useViewer = (settings, selectedResolution, sceneSelected) => {
+// Dev-only: silence the noisy “removeChild … not a child” unhandled rejection
+if (import.meta?.env?.DEV && typeof window !== "undefined") {
+  window.addEventListener("unhandledrejection", (e) => {
+    const msg = String(e.reason?.message || e.reason || "");
+    if (msg.includes("removeChild") && msg.includes("not a child")) e.preventDefault();
+  });
+}
+
+export const useViewer = (
+  settings = DEFAULT_SETTINGS,
+  selectedResolution,
+  sceneSelected
+) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const viewerRef = useRef(null);
   const viewerInstanceRef = useRef(null);
   const isMountedRef = useRef(true);
-  const currentSettingsRef = useRef(settings);
+  const currentSettingsRef = useRef(DEFAULT_SETTINGS);
 
   // Load model into an existing viewer
   const loadModel = useCallback(
@@ -79,18 +93,14 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         const url = modelURL(resolution.filename);
 
         await viewer.addSplatScene(url, {
-          showLoadingUI: false,     // only your app loader is shown
+          showLoadingUI: false, // only app loader
           position: [0, 0, 0],
         });
 
-        // Make sure we’re drawing
         viewer.start?.();
         viewer.render?.();
-
-        // Camera safety net
         frameScene(viewer);
 
-        // Expose for quick debugging if needed
         if (typeof window !== "undefined") {
           // eslint-disable-next-line no-underscore-dangle
           window.__viewer = viewer;
@@ -109,9 +119,13 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
 
   // Create/initialize a viewer
   const initializeViewer = useCallback(async () => {
+    const safe = {
+      antialiased: !!(settings?.antialiased ?? DEFAULT_SETTINGS.antialiased),
+      alphaThreshold: Number(settings?.alphaThreshold ?? DEFAULT_SETTINGS.alphaThreshold),
+    };
+
     if (!viewerRef.current || !sceneSelected) return;
 
-    // Tear down any previous instance to avoid double loops & VRAM leaks
     teardownViewer(viewerInstanceRef);
 
     const orbitPreset = sceneSelected?.orbit || "frontFocus";
@@ -129,19 +143,16 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         initialCameraPosition,
         initialCameraLookAt,
         rootElement: viewerRef.current,
-        showLoadingUI: false,        // keep only your small loader
-        antialiased: !!settings.antialiased,
-        useWorker: true,             // COI SW enables this on GitHub Pages
+        showLoadingUI: false,
+        antialiased: safe.antialiased,
+        useWorker: typeof crossOriginIsolated !== "undefined" ? crossOriginIsolated : true,
       });
 
-      // Ensure loop is running
       viewer.start?.();
-
-      // Apply control preset
       applyControlConfig(viewer.controls, orbitPreset);
 
       viewerInstanceRef.current = viewer;
-      currentSettingsRef.current = settings;
+      currentSettingsRef.current = safe;
 
       if (typeof window !== "undefined") {
         // eslint-disable-next-line no-underscore-dangle
@@ -149,7 +160,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
       }
 
       if (selectedResolution) {
-        await loadModel(viewer, settings, selectedResolution);
+        await loadModel(viewer, safe, selectedResolution);
       }
     } catch (err) {
       console.error("Error initializing viewer:", err);
@@ -175,29 +186,33 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
 
   // Settings changes: avoid heavy re-init unless AA toggled
   useEffect(() => {
-    const prev = currentSettingsRef.current || {};
-    const changedAlpha = prev.alphaThreshold !== settings.alphaThreshold;
-    const changedAA = prev.antialiased !== settings.antialiased;
+    const prev = currentSettingsRef.current || DEFAULT_SETTINGS;
+    const next = {
+      antialiased: !!(settings?.antialiased ?? DEFAULT_SETTINGS.antialiased),
+      alphaThreshold: Number(settings?.alphaThreshold ?? DEFAULT_SETTINGS.alphaThreshold),
+    };
+    const changedAlpha = (prev.alphaThreshold ?? 128) !== (next.alphaThreshold ?? 128);
+    const changedAA = !!prev.antialiased !== !!next.antialiased;
 
     if (!viewerInstanceRef.current) {
-      currentSettingsRef.current = settings;
+      currentSettingsRef.current = next;
       return;
     }
 
-    // AA is a construction-time option → rebuild cleanly
     if (changedAA) {
-      currentSettingsRef.current = settings;
+      currentSettingsRef.current = next;
       initializeViewer();
       return;
     }
 
-    // If you later wire alpha to the loader, do a light reload of the scene
     if (changedAlpha && sceneSelected && selectedResolution) {
-      currentSettingsRef.current = settings;
-      // Reload the current scene (no manual DOM removals)
-      // If the lib exposes a way to update alpha live, prefer that instead of reloading
-      viewerInstanceRef.current.clearScenes?.();
-      loadModel(viewerInstanceRef.current, settings, selectedResolution);
+      currentSettingsRef.current = next;
+      try {
+        viewerInstanceRef.current.clearScenes?.();
+      } catch {
+        /* ignore */
+      }
+      loadModel(viewerInstanceRef.current, next, selectedResolution);
     }
   }, [settings, selectedResolution, sceneSelected, initializeViewer, loadModel]);
 

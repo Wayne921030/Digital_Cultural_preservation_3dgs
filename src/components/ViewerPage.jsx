@@ -2,8 +2,8 @@ import React, { useState, Suspense } from "react";
 import { Box, Typography, Button } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { DEVICE_CONFIGS } from "../constants";
+import Viewer from "./Viewer.jsx";
 
-const Viewer = React.lazy(() => import("./Viewer"));
 
 const ViewerPage = ({
   onNavigateToScenes,
@@ -24,6 +24,10 @@ const ViewerPage = ({
   const isTopDown360 = orbit === "topDown360";
   const isFrontFocus = orbit === "frontFocus";
   const deviceConfig = DEVICE_CONFIGS[selectedDevice];
+  const [settings, setSettings] = useState({
+    antialiased: false,
+    alphaThreshold: 128,
+  });
 
   return (
     <Box
@@ -91,7 +95,7 @@ const ViewerPage = ({
                   variant="caption"
                   sx={{ color: "#6B5B47", opacity: 0.8 }}
                 >
-                  {deviceConfig?.name || "Unknown"} • {orbit}
+                  {deviceConfig?.label || "Unknown"} • {orbit}
                 </Typography>
               </Box>
 
@@ -169,6 +173,7 @@ const ViewerPage = ({
             sceneSelected={sceneSelected}
             selectedScene={selectedScene}
             ref={viewerRef}
+            settings={settings}
           />
         </Suspense>
       </Box>
