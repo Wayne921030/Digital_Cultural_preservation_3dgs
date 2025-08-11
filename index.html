@@ -4,24 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Cultural Preservation 3DGS</title>
-    <!-- COI Service Worker for GitHub Pages -->
+    
+    <!-- Manual COI Service Worker Registration -->
     <script>
-    (function () {
-    console.log("🔧 Initializing COI Service Worker for GitHub Pages");
-    if (!('serviceWorker' in navigator)) return console.error("SW not supported");
-    navigator.serviceWorker.register('/coi-serviceworker.js').then(() => {
-        if (!crossOriginIsolated) location.reload();
-        console.log("✅ Already cross-origin isolated!");
-    }).catch(err => console.error("SW error", err));
+    (function() {
+        console.log("🔧 Initializing COI Service Worker for GitHub Pages");
+        console.log("Initial state:", {
+            crossOriginIsolated: crossOriginIsolated,
+            hasSharedArrayBuffer: typeof SharedArrayBuffer !== 'undefined',
+            isSecureContext: isSecureContext
+        });
+        
+        // Skip if already cross-origin isolated
+        if (crossOriginIsolated) {
+            console.log("✅ Already cross-origin isolated!");
+            return;
+        }
+        
+        // Check if we're in a secure context (required for service workers)
+        if (!isSecureContext) {
+            console.error("❌ COI requires HTTPS");
+            return;
+        }
+        
+        // Track reload attempts to prevent infinite loops
+        const reloadAttempts = parseInt(sessionStorage.getItem("coi-reload-attempts") || "0");
+        if (reloadAttempts >= 2) {
+            console.warn("⚠️ COI: Maximum reload attempts reached, giving up");
+            sessionStorage.removeItem("coi-reload-attempts");
+            return;
+        }
+        
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/coi-serviceworker.js', {
+                scope: '/'
+            }).then(function(registration) {
+                console.log("✅ COI Service Worker registered:", registration.scope);
+                
+                // If there's no controller, we need to reload to activate the SW
+                if (!navigator.serviceWorker.controller) {
+                    console.log("🔄 No controller yet, will reload when SW activates");
+                    
+                    registration.addEventListener('updatefound', function() {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', function() {
+                            if (newWorker.state === 'activated') {
+                                console.log("🔄 Service Worker activated, reloading page...");
+                                sessionStorage.setItem("coi-reload-attempts", (reloadAttempts + 1).toString());
+                                window.location.reload();
+                            }
+                        });
+                    });
+                    
+                    // Handle case where SW is already installing/waiting
+                    if (registration.installing) {
+                        registration.installing.addEventListener('statechange', function() {
+                            if (registration.installing.state === 'activated') {
+                                console.log("🔄 Service Worker activated, reloading page...");
+                                sessionStorage.setItem("coi-reload-attempts", (reloadAttempts + 1).toString());
+                                window.location.reload();
+                            }
+                        });
+                    } else if (registration.waiting) {
+                        // SW is already waiting, skip waiting and reload
+                        registration.waiting.postMessage({type: 'SKIP_WAITING'});
+                        console.log("🔄 Service Worker waiting, reloading page...");
+                        sessionStorage.setItem("coi-reload-attempts", (reloadAttempts + 1).toString());
+                        window.location.reload();
+                    } else if (registration.active && !navigator.serviceWorker.controller) {
+                        // SW is active but not controlling, reload
+                        console.log("🔄 Service Worker active but not controlling, reloading page...");
+                        sessionStorage.setItem("coi-reload-attempts", (reloadAttempts + 1).toString());
+                        window.location.reload();
+                    }
+                } else {
+                    console.log("✅ Service Worker already controlling page");
+                    // Clear reload attempts on successful COI
+                    if (crossOriginIsolated) {
+                        sessionStorage.removeItem("coi-reload-attempts");
+                    }
+                }
+                
+                // Listen for SW updates
+                registration.addEventListener('updatefound', function() {
+                    console.log("🔄 Service Worker update found");
+                });
+                
+            }).catch(function(error) {
+                console.error("❌ COI Service Worker registration failed:", error);
+            });
+            
+            // Listen for messages from SW
+            navigator.serviceWorker.addEventListener('message', function(event) {
+                console.log("📩 Message from Service Worker:", event.data);
+            });
+            
+        } else {
+            console.error("❌ Service Workers not supported");
+        }
     })();
     </script>
-
-    <!-- Optional: preconnect to your CloudFront -->
+    
+    <!-- Preload critical resources -->
     <link rel="preconnect" href="https://dr4wh7nh38tn3.cloudfront.net">
-
 </head>
 <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 </body>
-</html> 
+</html>
