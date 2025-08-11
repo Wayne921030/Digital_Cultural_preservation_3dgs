@@ -3,9 +3,7 @@ import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
 import { isSupportedFile } from "../utils/fileUtils";
 import { modelURL } from "../config";
 
-/**
- * Orbit / control presets (from 3dgs-frontend, merged)
- */
+/** Orbit / control presets */
 const controlConfigs = {
   base: { minPolarAngle: 0, maxPolarAngle: Math.PI, enablePan: true, enableZoom: true },
   topDown360: {
@@ -37,21 +35,30 @@ function applyControlConfig(controls, presetName) {
   if (typeof cfg.enableZoom === "boolean") controls.enableZoom = cfg.enableZoom;
 }
 
-// Safety: ensure camera points at loaded content
+// Ensure camera points at content after load
 function frameScene(viewer) {
   if (!viewer) return;
-  if (typeof viewer.frameAll === "function") {
-    viewer.frameAll();
-  } else if (typeof viewer.fitCameraToScene === "function") {
-    viewer.fitCameraToScene();
-  } else {
-    viewer.controls?.update?.();
-  }
+  if (typeof viewer.frameAll === "function") viewer.frameAll();
+  else if (typeof viewer.fitCameraToScene === "function") viewer.fitCameraToScene();
+  else viewer.controls?.update?.();
 }
 
-/**
- * 3D Viewer Core Logic Hook (production-safe)
- */
+// Hard cleanup to avoid leaks/lag on nav-away
+function teardownViewer(viewerRefObj, rootEl) {
+  const v = viewerRefObj.current;
+  if (!v) return;
+  try {
+    v.stop?.();                 // stop render loop
+    v.clearScenes?.();          // remove scenes
+    v.dispose?.();              // free GL buffers/textures
+    v.renderer?.dispose?.();    // extra safety
+    const gl = v.gl || v.renderer?.getContext?.();
+    gl?.getExtension?.("WEBGL_lose_context")?.loseContext?.();
+  } catch {/* no-op */}
+  viewerRefObj.current = null;
+  if (rootEl) rootEl.innerHTML = ""; // drop canvas
+}
+
 export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -61,53 +68,44 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const currentSettingsRef = useRef(settings);
 
   // Load model into an existing viewer
-  const loadModel = useCallback(
-    async (viewer, settings, resolution) => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        if (!isMountedRef.current) return;
-
-        if (!resolution?.filename || !isSupportedFile(resolution.filename)) {
-          throw new Error("Unsupported or missing model filename");
-        }
-
-        const url = modelURL(resolution.filename);
-
-        // Use library defaults for alpha threshold (safer across scenes)
-        await viewer.addSplatScene(url, {
-          showLoadingUI: false,
-          position: [0, 0, 0],
-        });
-
-        // Kick the render loop (some builds require this)
-        viewer.start?.();
-        viewer.render?.();
-
-        frameScene(viewer);
-        console.info("Viewer: model added and framed", resolution.filename);
-      } catch (err) {
-        console.error("Error loading model:", err);
-        setError(err.message || "Failed to load model");
-      } finally {
-        setIsLoading(false);
+  const loadModel = useCallback(async (viewer, _settings, resolution) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      if (!isMountedRef.current) return;
+      if (!resolution?.filename || !isSupportedFile(resolution.filename)) {
+        throw new Error("Unsupported or missing model filename");
       }
-    },
-    []
-  );
+      const url = modelURL(resolution.filename);
+      await viewer.addSplatScene(url, {
+        showLoadingUI: false,
+        position: [0, 0, 0],
+      });
+      viewer.start?.();
+      viewer.render?.();
+      frameScene(viewer);
+      console.info("Viewer: model added and framed", resolution.filename);
+    } catch (err) {
+      console.error("Error loading model:", err);
+      setError(err.message || "Failed to load model");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  // Initialize viewer
+  // Create/initialize a viewer
   const initializeViewer = useCallback(async () => {
     if (!viewerRef.current || !sceneSelected) return;
 
-    // Resolve camera + orbit from scene (fallback to defaults)
+    // Tear down any previous instance to avoid double loops & VRAM leaks
+    teardownViewer(viewerInstanceRef, viewerRef.current);
+
     const orbitPreset = sceneSelected?.orbit || "frontFocus";
     const cam = sceneSelected?.camera || {};
     const cameraUp = Array.isArray(cam.up) ? cam.up : [0, -1, -0.6];
     const initialCameraPosition = Array.isArray(cam.position) ? cam.position : [-1, -4, 6];
     const initialCameraLookAt = Array.isArray(cam.target) ? cam.target : [0, 4, 0];
 
-    viewerRef.current.innerHTML = "";
     try {
       setIsLoading(true);
       setError(null);
@@ -122,18 +120,14 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         useWorker: true,
       });
 
-      // Ensure render loop is active
-      viewer.start?.();
-
+      viewer.start?.(); // ensure loop is running
       applyControlConfig(viewer.controls, orbitPreset);
 
       viewerInstanceRef.current = viewer;
-      if (typeof window !== 'undefined') { window.__viewer = viewer; }
       currentSettingsRef.current = settings;
+      if (typeof window !== "undefined") window.__viewer = viewer; // debug helper
 
-      if (selectedResolution) {
-        await loadModel(viewer, settings, selectedResolution);
-      }
+      if (selectedResolution) await loadModel(viewer, settings, selectedResolution);
     } catch (err) {
       console.error("Error initializing viewer:", err);
       setError(err.message || "Failed to initialize viewer");
@@ -142,32 +136,48 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
     }
   }, [settings, selectedResolution, sceneSelected, loadModel]);
 
+  // Mount/unmount lifecycle
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      teardownViewer(viewerInstanceRef, viewerRef.current);
     };
   }, []);
 
-  // Re-init when scene changes
+  // Init on scene change
   useEffect(() => {
     if (sceneSelected) initializeViewer();
   }, [sceneSelected, initializeViewer]);
 
-  // Re-init when antialias/alphaThreshold change
+  // Settings changes: avoid full re-init unless AA toggled
   useEffect(() => {
-    if (!viewerInstanceRef.current) return;
     const prev = currentSettingsRef.current || {};
-    const changed =
-      prev.alphaThreshold !== settings.alphaThreshold ||
-      prev.antialiased !== settings.antialiased;
-    if (changed) {
+    const changedAlpha = prev.alphaThreshold !== settings.alphaThreshold;
+    const changedAA = prev.antialiased !== settings.antialiased;
+
+    if (!viewerInstanceRef.current) {
+      currentSettingsRef.current = settings;
+      return;
+    }
+
+    // Antialiasing is a constructor-time option → rebuild viewer
+    if (changedAA) {
       currentSettingsRef.current = settings;
       initializeViewer();
+      return;
     }
-  }, [settings, initializeViewer]);
 
-  // Public camera reset (use scene defaults if available)
+    // For other runtime-tunable settings, reload the model only
+    if (changedAlpha && sceneSelected && selectedResolution) {
+      currentSettingsRef.current = settings;
+      // Light reload: clear then add scene again (if API available)
+      viewerInstanceRef.current.clearScenes?.();
+      loadModel(viewerInstanceRef.current, settings, selectedResolution);
+    }
+  }, [settings, selectedResolution, sceneSelected, initializeViewer, loadModel]);
+
+  // Public camera reset
   const resetCamera = useCallback(() => {
     if (!viewerInstanceRef.current) return;
     const cam = sceneSelected?.camera || {};
