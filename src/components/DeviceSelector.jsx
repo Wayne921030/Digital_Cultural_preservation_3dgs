@@ -16,8 +16,9 @@ import {
   Computer as ComputerIcon,
   ArrowBack
 } from '@mui/icons-material'
+import TabBar from './TabBar'
 
-function DeviceSelector({ deviceConfigs, onDeviceSelect, selectedDevice }) {
+function DeviceSelector({ deviceConfigs, onDeviceSelect, selectedDevice, currentPage, onTabChange }) {
 
   if (!deviceConfigs || Object.keys(deviceConfigs).length === 0) {
     return (
@@ -139,26 +140,10 @@ function DeviceSelector({ deviceConfigs, onDeviceSelect, selectedDevice }) {
       minHeight: 'calc(100vh - 64px)'
     }}>
 
-      {/* Main Navigation Bar */}
-      <Box sx={{ 
-        backgroundColor: 'white',
-        borderBottom: '1px solid rgba(139, 115, 85, 0.1)',
-        py: 2
-      }}>
-        <Container maxWidth="xl">
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Button 
-                startIcon={<ArrowBack />}
-                onClick={() => window.history.back()}
-                sx={{ color: '#6B5B47' }}
-              >
-                返回首頁
-              </Button>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
+      {/* TabBar */}
+      {currentPage && onTabChange && (
+        <TabBar currentPage={currentPage} onTabChange={onTabChange} />
+      )}
 
       <Container maxWidth="xl" sx={{ py: 4 }}>
         {/* Title */}

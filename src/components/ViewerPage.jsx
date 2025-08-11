@@ -3,6 +3,7 @@ import { Box, Typography, Button } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { DEVICE_CONFIGS } from "../constants";
 import Viewer from "./Viewer.jsx";
+import TabBar from "./TabBar";
 
 
 const ViewerPage = ({
@@ -18,6 +19,8 @@ const ViewerPage = ({
   viewerRef,
   resetCameraRef,
   sceneSelected,
+  currentPage,
+  onTabChange,
 }) => {
   // Get orbit type from selected scene
   const orbit = selectedScene?.orbit || "frontFocus";
@@ -65,6 +68,11 @@ const ViewerPage = ({
               </Button>
             </Box>
           </Box>
+
+          {/* TabBar */}
+          {currentPage && onTabChange && (
+            <TabBar currentPage={currentPage} onTabChange={onTabChange} />
+          )}
 
           {/* Control Area */}
           {selectedScene && (
