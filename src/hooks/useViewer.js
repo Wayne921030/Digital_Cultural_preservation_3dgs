@@ -29,13 +29,24 @@ const controlConfigs = {
 function applyControlConfig(controls, presetName) {
   const cfg = controlConfigs[presetName] || controlConfigs.base;
   if (!controls || !cfg) return;
-  // These map to OrbitControls-like props exposed by the viewer
   if (typeof cfg.minPolarAngle === "number") controls.minPolarAngle = cfg.minPolarAngle;
   if (typeof cfg.maxPolarAngle === "number") controls.maxPolarAngle = cfg.maxPolarAngle;
   if (typeof cfg.minAzimuthAngle === "number") controls.minAzimuthAngle = cfg.minAzimuthAngle;
   if (typeof cfg.maxAzimuthAngle === "number") controls.maxAzimuthAngle = cfg.maxAzimuthAngle;
   if (typeof cfg.enablePan === "boolean") controls.enablePan = cfg.enablePan;
   if (typeof cfg.enableZoom === "boolean") controls.enableZoom = cfg.enableZoom;
+}
+
+// Safety: ensure camera points at loaded content
+function frameScene(viewer) {
+  if (!viewer) return;
+  if (typeof viewer.frameAll === "function") {
+    viewer.frameAll();
+  } else if (typeof viewer.fitCameraToScene === "function") {
+    viewer.fitCameraToScene();
+  } else {
+    viewer.controls?.update?.();
+  }
 }
 
 /**
@@ -49,9 +60,6 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const isMountedRef = useRef(true);
   const currentSettingsRef = useRef(settings);
 
-  // Map 0–10 UI slider to the 0–255 alpha byte expected by the loader
-  const mapAlphaThreshold = (val) => Math.round((Number(val || 0) / 10) * 255);
-
   // Load model into an existing viewer
   const loadModel = useCallback(
     async (viewer, settings, resolution) => {
@@ -64,14 +72,16 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
           throw new Error("Unsupported or missing model filename");
         }
 
-        const alphaThresholdByte = mapAlphaThreshold(settings.alphaThreshold);
         const url = modelURL(resolution.filename);
 
+        // Use library defaults for alpha threshold (safer across scenes)
         await viewer.addSplatScene(url, {
           showLoadingUI: true,
           position: [0, 0, 0],
-          alphaThreshold: alphaThresholdByte,
         });
+
+        frameScene(viewer);
+        console.info("Viewer: model added and framed", resolution.filename);
       } catch (err) {
         console.error("Error loading model:", err);
         setError(err.message || "Failed to load model");
@@ -86,7 +96,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const initializeViewer = useCallback(async () => {
     if (!viewerRef.current || !sceneSelected) return;
 
-    // Resolve camera + orbit from scene (fallback to your main defaults)
+    // Resolve camera + orbit from scene (fallback to defaults)
     const orbitPreset = sceneSelected?.orbit || "frontFocus";
     const cam = sceneSelected?.camera || {};
     const cameraUp = Array.isArray(cam.up) ? cam.up : [0, -1, -0.6];
@@ -108,7 +118,6 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         useWorker: true, // enabled by COI service worker in index.html
       });
 
-      // Apply orbit/controls preset from 3dgs-frontend
       applyControlConfig(viewer.controls, orbitPreset);
 
       viewerInstanceRef.current = viewer;
@@ -127,7 +136,9 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
 
   useEffect(() => {
     isMountedRef.current = true;
-    return () => { isMountedRef.current = false; };
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   // Re-init when scene changes
@@ -156,6 +167,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
     const tgt = Array.isArray(cam.target) ? cam.target : [0, 4, 0];
     viewerInstanceRef.current.camera.position.set(...pos);
     viewerInstanceRef.current.controls.target.set(...tgt);
+    viewerInstanceRef.current.controls.update?.();
   }, [sceneSelected]);
 
   return { isLoading, error, viewerRef, viewerInstanceRef, resetCamera };
