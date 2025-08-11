@@ -122,7 +122,7 @@ const BaseIntroPage = ({
 
   // Default styles that can be overridden
   const defaultStyles = {
-    background: "linear-gradient(180deg, #F8F6F2 0%, #E8E0D0 100%)",
+    background: "linear-gradient(180deg, #DCE4C9 0%, #F8F6F2 100%)",
     primaryColor: "#6B5B47",
     secondaryColor: "#8B7355",
     textColor: "#2F2F2F",
@@ -134,6 +134,7 @@ const BaseIntroPage = ({
   return (
     <Box
       sx={{
+        // background: "linear-gradient(180deg, #DCE4C9 0%, #F8F6F2 100%)",
         background: styles.background,
         minHeight: "calc(100vh - 64px)",
       }}

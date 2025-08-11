@@ -11,7 +11,7 @@ const TabBar = ({ currentPage, onTabChange }) => {
     <Box
       sx={{
         py: 3,
-        backgroundColor: "#F8F6F2",
+        backgroundColor: "secondary.main",
       }}
     >
       <Container

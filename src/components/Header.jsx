@@ -19,7 +19,7 @@ function Header() {
 
   return (
     <Box sx={{ 
-      backgroundColor: '#6B5B47',
+      backgroundColor: 'primary.dark',
       color: 'white',
       py: 2,
       px: 3,

@@ -8,6 +8,7 @@ const Footer = () => {
       sx={{
         borderTop: "1px solid rgba(139, 115, 85, 0.1)",
         py: 6,
+        backgroundColor: 'background.default',
       }}
     >
       <Container
@@ -18,8 +19,17 @@ const Footer = () => {
           px: { xs: 2, sm: 3, md: 4, lg: 6, xl: 8 },
         }}
       >
-        <Typography variant="h4">
-          <ContactSupport sx={{ fontSize: 30, color: "#8B7355" }} />
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1,
+            mb: 3,
+            color: 'primary.main'
+          }}
+        >
+          <ContactSupport sx={{ fontSize: 30, color: 'primary.main' }} />
           Contact
         </Typography>
         <Grid container spacing={6}>
@@ -33,14 +43,12 @@ const Footer = () => {
             </Typography>
             <Typography
               variant="body1"
-              paragraph
               sx={{ fontSize: "1.1rem", mb: 2, color: "#2F2F2F" }}
             >
               電話: +886-4-1234-5678
             </Typography>
             <Typography
               variant="body1"
-              paragraph
               sx={{ fontSize: "1.1rem", mb: 2, color: "#2F2F2F" }}
             >
               信箱: info@baoshengtemple.org.tw
@@ -62,7 +70,6 @@ const Footer = () => {
             </Typography>
             <Typography
               variant="body1"
-              paragraph
               sx={{
                 fontSize: "1.1rem",
                 mb: 4,

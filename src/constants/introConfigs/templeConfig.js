@@ -62,7 +62,6 @@ export const templeSceneFilter = (scenes) => {
 
 // Custom styles for temple theme
 export const templeStyles = {
-  background: "linear-gradient(180deg, #F8F6F2 0%, #E8E0D0 100%)",
   primaryColor: "#6B5B47",
   secondaryColor: "#8B7355",
   textColor: "#2F2F2F",

@@ -31,7 +31,7 @@ const HomePage = ({
       {/* Page Title */}
       <Box
         sx={{
-          background: "linear-gradient(180deg, #D4C4A8 0%, #F8F6F2 100%)",
+          background: "linear-gradient(180deg, #DCE4C9 0%, #F8F6F2 100%)",
           py: 4,
         }}
       >
