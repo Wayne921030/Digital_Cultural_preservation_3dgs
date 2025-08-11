@@ -130,9 +130,9 @@ export const useViewer = (
 
     const orbitPreset = sceneSelected?.orbit || "frontFocus";
     const cam = sceneSelected?.camera || {};
-    const cameraUp = Array.isArray(cam.up) ? cam.up : [0, -1, -0.6];
-    const initialCameraPosition = Array.isArray(cam.position) ? cam.position : [-1, -4, 6];
-    const initialCameraLookAt = Array.isArray(cam.target) ? cam.target : [0, 4, 0];
+    const cameraUp = Array.isArray(cam.up) ? cam.up : [0, -1, -0];
+    const initialCameraPosition = Array.isArray(cam.position) ? cam.position : [0, 0, 6];
+    const initialCameraLookAt = Array.isArray(cam.target) ? cam.target : [0, 0, 0];
 
     try {
       setIsLoading(true);
@@ -220,8 +220,8 @@ export const useViewer = (
   const resetCamera = useCallback(() => {
     if (!viewerInstanceRef.current) return;
     const cam = sceneSelected?.camera || {};
-    const pos = Array.isArray(cam.position) ? cam.position : [-1, -4, 6];
-    const tgt = Array.isArray(cam.target) ? cam.target : [0, 4, 0];
+    const pos = Array.isArray(cam.position) ? cam.position : [0, 0, 6];
+    const tgt = Array.isArray(cam.target) ? cam.target : [0, 0, 0];
     viewerInstanceRef.current.camera.position.set(...pos);
     viewerInstanceRef.current.controls.target.set(...tgt);
     viewerInstanceRef.current.controls.update?.();
