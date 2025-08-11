@@ -1,9 +1,45 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
 import { isSupportedFile } from "../utils/fileUtils";
+import { modelURL } from "../config";
 
 /**
- * 3D Viewer Core Logic Hook
+ * Orbit / control presets (from 3dgs-frontend, merged)
+ */
+const controlConfigs = {
+  base: { minPolarAngle: 0, maxPolarAngle: Math.PI, enablePan: true, enableZoom: true },
+  topDown360: {
+    minPolarAngle: 0,
+    maxPolarAngle: Math.PI / 2,
+    minAzimuthAngle: -Infinity,
+    maxAzimuthAngle: Infinity,
+    enablePan: true,
+    enableZoom: true,
+  },
+  frontFocus: {
+    minPolarAngle: Math.PI / 4,
+    maxPolarAngle: (3 * Math.PI) / 4,
+    minAzimuthAngle: -Math.PI / 3,
+    maxAzimuthAngle: Math.PI / 3,
+    enablePan: true,
+    enableZoom: true,
+  },
+};
+
+function applyControlConfig(controls, presetName) {
+  const cfg = controlConfigs[presetName] || controlConfigs.base;
+  if (!controls || !cfg) return;
+  // These map to OrbitControls-like props exposed by the viewer
+  if (typeof cfg.minPolarAngle === "number") controls.minPolarAngle = cfg.minPolarAngle;
+  if (typeof cfg.maxPolarAngle === "number") controls.maxPolarAngle = cfg.maxPolarAngle;
+  if (typeof cfg.minAzimuthAngle === "number") controls.minAzimuthAngle = cfg.minAzimuthAngle;
+  if (typeof cfg.maxAzimuthAngle === "number") controls.maxAzimuthAngle = cfg.maxAzimuthAngle;
+  if (typeof cfg.enablePan === "boolean") controls.enablePan = cfg.enablePan;
+  if (typeof cfg.enableZoom === "boolean") controls.enableZoom = cfg.enableZoom;
+}
+
+/**
+ * 3D Viewer Core Logic Hook (production-safe)
  */
 export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,118 +49,114 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
   const isMountedRef = useRef(true);
   const currentSettingsRef = useRef(settings);
 
-  // Load model function
+  // Map 0–10 UI slider to the 0–255 alpha byte expected by the loader
+  const mapAlphaThreshold = (val) => Math.round((Number(val || 0) / 10) * 255);
+
+  // Load model into an existing viewer
   const loadModel = useCallback(
     async (viewer, settings, resolution) => {
       try {
         setIsLoading(true);
         setError(null);
-
         if (!isMountedRef.current) return;
 
-        const alphaThreshold = Math.round((settings.alphaThreshold / 10) * 255);
-
-        if (!isSupportedFile(resolution.filename)) {
-          throw new Error("Unsupported file type");
+        if (!resolution?.filename || !isSupportedFile(resolution.filename)) {
+          throw new Error("Unsupported or missing model filename");
         }
 
-        const modelUrl = `https://dr4wh7nh38tn3.cloudfront.net/models/${resolution.filename}`;
+        const alphaThresholdByte = mapAlphaThreshold(settings.alphaThreshold);
+        const url = modelURL(resolution.filename);
 
-        await viewer.addSplatScene(modelUrl, {
-          splatAlphaRemovalThreshold: alphaThreshold,
-          showLoadingUI: false,
-          position: [0, 1, 0],
-          rotation: [0, 0, 0, 1],
+        await viewer.addSplatScene(url, {
+          showLoadingUI: true,
+          position: [0, 0, 0],
+          alphaThreshold: alphaThresholdByte,
         });
-
-        if (!isMountedRef.current) return;
-        viewer.start();
       } catch (err) {
         console.error("Error loading model:", err);
-        if (isMountedRef.current) {
-          setError(`Failed to load model: ${err.message}`);
-        }
+        setError(err.message || "Failed to load model");
       } finally {
-        if (isMountedRef.current) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     },
-    [settings, selectedResolution]
+    []
   );
 
   // Initialize viewer
   const initializeViewer = useCallback(async () => {
     if (!viewerRef.current || !sceneSelected) return;
 
+    // Resolve camera + orbit from scene (fallback to your main defaults)
+    const orbitPreset = sceneSelected?.orbit || "frontFocus";
+    const cam = sceneSelected?.camera || {};
+    const cameraUp = Array.isArray(cam.up) ? cam.up : [0, -1, -0.6];
+    const initialCameraPosition = Array.isArray(cam.position) ? cam.position : [-1, -4, 6];
+    const initialCameraLookAt = Array.isArray(cam.target) ? cam.target : [0, 4, 0];
+
     viewerRef.current.innerHTML = "";
     try {
       setIsLoading(true);
       setError(null);
 
-      // Create viewer with optimal settings
       const viewer = new GaussianSplats3D.Viewer({
-        cameraUp: [0, -1, -0.6],
-        initialCameraPosition: [-1, -4, 6],
-        initialCameraLookAt: [0, 4, 0],
+        cameraUp,
+        initialCameraPosition,
+        initialCameraLookAt,
         rootElement: viewerRef.current,
         showLoadingUI: true,
-        antialiased: settings.antialiased || false,
-        useWorker: true  // COI service worker enables this
+        antialiased: !!settings.antialiased,
+        useWorker: true, // enabled by COI service worker in index.html
       });
+
+      // Apply orbit/controls preset from 3dgs-frontend
+      applyControlConfig(viewer.controls, orbitPreset);
 
       viewerInstanceRef.current = viewer;
       currentSettingsRef.current = settings;
 
-      if (sceneSelected && selectedResolution) {
+      if (selectedResolution) {
         await loadModel(viewer, settings, selectedResolution);
       }
     } catch (err) {
       console.error("Error initializing viewer:", err);
-      setError(`Viewer initialization failed: ${err.message}`);
+      setError(err.message || "Failed to initialize viewer");
     } finally {
       setIsLoading(false);
     }
-  }, [settings, selectedResolution, sceneSelected]);
+  }, [settings, selectedResolution, sceneSelected, loadModel]);
 
   useEffect(() => {
     isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
+    return () => { isMountedRef.current = false; };
   }, []);
 
+  // Re-init when scene changes
   useEffect(() => {
-    if (sceneSelected) {
-      initializeViewer();
-    }
+    if (sceneSelected) initializeViewer();
   }, [sceneSelected, initializeViewer]);
 
+  // Re-init when antialias/alphaThreshold change
   useEffect(() => {
-    if (viewerInstanceRef.current) {
-      const settingsChanged =
-        currentSettingsRef.current.alphaThreshold !== settings.alphaThreshold ||
-        currentSettingsRef.current.antialiased !== settings.antialiased;
-
-      if (settingsChanged) {
-        currentSettingsRef.current = settings;
-        initializeViewer();
-      }
+    if (!viewerInstanceRef.current) return;
+    const prev = currentSettingsRef.current || {};
+    const changed =
+      prev.alphaThreshold !== settings.alphaThreshold ||
+      prev.antialiased !== settings.antialiased;
+    if (changed) {
+      currentSettingsRef.current = settings;
+      initializeViewer();
     }
   }, [settings, initializeViewer]);
 
+  // Public camera reset (use scene defaults if available)
   const resetCamera = useCallback(() => {
-    if (viewerInstanceRef.current) {
-      viewerInstanceRef.current.camera.position.set(-1, -4, 6);
-      viewerInstanceRef.current.controls.target.set(0, 4, 0);
-    }
-  }, []);
+    if (!viewerInstanceRef.current) return;
+    const cam = sceneSelected?.camera || {};
+    const pos = Array.isArray(cam.position) ? cam.position : [-1, -4, 6];
+    const tgt = Array.isArray(cam.target) ? cam.target : [0, 4, 0];
+    viewerInstanceRef.current.camera.position.set(...pos);
+    viewerInstanceRef.current.controls.target.set(...tgt);
+  }, [sceneSelected]);
 
-  return {
-    isLoading,
-    error,
-    viewerRef,
-    viewerInstanceRef,
-    resetCamera,
-  };
+  return { isLoading, error, viewerRef, viewerInstanceRef, resetCamera };
 };

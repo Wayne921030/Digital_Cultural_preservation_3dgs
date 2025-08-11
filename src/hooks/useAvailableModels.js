@@ -1,63 +1,76 @@
 import { useState, useEffect, useCallback } from "react";
 import { DEVICE_CONFIGS } from "../constants";
+import { MODELS_INDEX } from "../config";
 
-// Fetch available models from CloudFront
+// Fetch available models (tolerate text/plain JSON and CORS quirks)
 const fetchAvailableModels = async () => {
-  try {
-    const url = `https://dr4wh7nh38tn3.cloudfront.net/models.json?v=${Date.now()}`; 
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-      mode: 'cors',
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching available models:", error);
-    throw error;
-  }
+  const url = `${MODELS_INDEX}?v=${Date.now()}`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+    mode: "cors",
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const type = res.headers.get("content-type") || "";
+  return type.includes("application/json") ? res.json() : JSON.parse(await res.text());
 };
 
 export const useAvailableModels = () => {
   const [scenes, setScenes] = useState([]);
+  const [deviceConfigs, setDeviceConfigs] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [deviceConfigs, setDeviceConfigs] = useState({});
+
+  const desiredDeviceConfigs = DEVICE_CONFIGS;
 
   const checkAvailableModels = useCallback(async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       setError(null);
 
       const serverResponse = await fetchAvailableModels();
 
       if (serverResponse && Array.isArray(serverResponse.scenes)) {
-        setScenes(serverResponse.scenes);
-        setDeviceConfigs(DEVICE_CONFIGS); 
+        const availableScenes = serverResponse.scenes;
+        setScenes(availableScenes);
+
+        const availableDeviceConfigs = {};
+        for (const [deviceKey, deviceConfig] of Object.entries(desiredDeviceConfigs)) {
+          // Check if any scene has a file type/resolution compatible with this device
+          let hasCompatibleFiles = false;
+          for (const scene of availableScenes) {
+            const fileTypes = scene?.file_types || [];
+            for (const ft of fileTypes) {
+              const resos = ft?.resolutions || [];
+              const resoNames = resos.map(r => r.resolution);
+              if (deviceConfig.supportedResolutions.some(r => resoNames.includes(r))) {
+                hasCompatibleFiles = true;
+                break;
+              }
+            }
+            if (hasCompatibleFiles) break;
+          }
+          availableDeviceConfigs[deviceKey] = {
+            ...deviceConfig,
+            available: hasCompatibleFiles,
+          };
+        }
+        setDeviceConfigs(availableDeviceConfigs);
       } else {
-        throw new Error("Could not parse the list of available scenes.");
+        setScenes([]);
+        setDeviceConfigs({});
       }
     } catch (err) {
       console.error("Error checking available models:", err);
-      setError(err.message);
+      setError(err.message || "Failed to fetch available models");
       setScenes([]);
       setDeviceConfigs({});
     } finally {
       setIsLoading(false);
     }
-  }, [])
+  }, []);
 
-  useEffect(() => {
-    checkAvailableModels();
-  }, [checkAvailableModels]);
+  useEffect(() => { checkAvailableModels(); }, [checkAvailableModels]);
 
   return {
     scenes,
