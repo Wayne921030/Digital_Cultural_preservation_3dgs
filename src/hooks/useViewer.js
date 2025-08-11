@@ -76,7 +76,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
 
         // Use library defaults for alpha threshold (safer across scenes)
         await viewer.addSplatScene(url, {
-          showLoadingUI: true,
+          showLoadingUI: false,
           position: [0, 0, 0],
         });
 
@@ -117,7 +117,7 @@ export const useViewer = (settings, selectedResolution, sceneSelected) => {
         initialCameraPosition,
         initialCameraLookAt,
         rootElement: viewerRef.current,
-        showLoadingUI: true,
+        showLoadingUI: false,
         antialiased: !!settings.antialiased,
         useWorker: true,
       });
