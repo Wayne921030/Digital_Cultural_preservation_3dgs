@@ -3,7 +3,6 @@ import { Box, Typography, Button } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { DEVICE_CONFIGS } from "../constants";
 import Viewer from "./Viewer.jsx";
-import TabBar from "./TabBar";
 
 
 const ViewerPage = ({
@@ -19,8 +18,6 @@ const ViewerPage = ({
   viewerRef,
   resetCameraRef,
   sceneSelected,
-  currentPage,
-  onTabChange,
 }) => {
   // Get orbit type from selected scene
   const orbit = selectedScene?.orbit || "frontFocus";
@@ -41,7 +38,6 @@ const ViewerPage = ({
         maxWidth: "100vw",
       }}
     >
-      {/* 主要導航欄 */}
       <Box
         sx={{
           borderBottom: "1px solid rgba(139, 115, 85, 0.1)",
@@ -69,11 +65,6 @@ const ViewerPage = ({
             </Box>
           </Box>
 
-          {/* TabBar */}
-          {currentPage && onTabChange && (
-            <TabBar currentPage={currentPage} onTabChange={onTabChange} />
-          )}
-
           {/* Control Area */}
           {selectedScene && (
             <Box
@@ -84,15 +75,7 @@ const ViewerPage = ({
                 flexWrap: "wrap",
               }}
             >
-              <Box
-                sx={{
-                  padding: 1,
-                  background: "rgba(139, 115, 85, 0.1)",
-                  borderRadius: 1,
-                  textAlign: "center",
-                  minWidth: 200,
-                }}
-              >
+              <Box>
                 <Typography
                   variant="body2"
                   sx={{ color: "#6B5B47", fontSize: "0.8rem" }}
@@ -174,7 +157,11 @@ const ViewerPage = ({
       >
         <Suspense fallback={<div>Loading Viewer...</div>}>
           <Viewer
-            onResetCamera={resetCameraRef}
+            onResetCamera={(resetCameraFn) => {
+              if (resetCameraRef && typeof resetCameraRef === 'object') {
+                resetCameraRef.current = resetCameraFn;
+              }
+            }}
             isAutoRotating={isAutoRotating}
             isSwingRotating={isSwingRotating}
             selectedResolution={selectedResolution}

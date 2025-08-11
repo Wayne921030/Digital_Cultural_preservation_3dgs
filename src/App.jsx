@@ -228,8 +228,6 @@ function App() {
               viewerRef={viewerRef}
               resetCameraRef={resetCameraRef}
               sceneSelected={sceneSelected}
-              currentPage="scenes"
-              onTabChange={handleTabChange}
             />
           </Suspense>
         );
