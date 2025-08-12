@@ -4,7 +4,7 @@ import { isSupportedFile } from "../utils/fileUtils";
 import { modelURL } from "../config";
 
 // ✅ Single point of control for viewer defaults
-const DEFAULT_SETTINGS = { antialiased: false, alphaThreshold: 0 };
+const DEFAULT_SETTINGS = { antialiased: true, alphaThreshold: 0 };
 
 /** Orbit / control presets */
 const controlConfigs = {
