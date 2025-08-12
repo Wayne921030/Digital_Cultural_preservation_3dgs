@@ -1,13 +1,13 @@
 // Export all intro configurations
-export * from './templeConfig';
+export * from './baoshengConfig';
 export * from './chenghuangConfig';
 
 // Re-export for backward compatibility
 export { 
-  templeConfig, 
-  templeSceneFilter, 
-  templeStyles,
+  baoshengConfig, 
+  baoshengSceneFilter, 
+  baoshengStyles,
   chenghuangConfig, 
   chenghuangSceneFilter, 
   chenghuangStyles 
-} from './templeConfig'; 
+} from './baoshengConfig'; 

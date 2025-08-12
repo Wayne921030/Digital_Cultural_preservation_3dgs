@@ -1,6 +1,6 @@
 import React from "react";
 import BaseIntroPage from "./BaseIntroPage";
-import { templeConfig, templeSceneFilter, templeStyles } from "../../constants/introConfigs/templeConfig";
+import { baoshengConfig, baoshengSceneFilter, baoshengStyles } from "../../constants/introConfigs/baoshengConfig";
 
 const TempleIntroPage = ({ onBackToHome, onSelectScene, scenes, currentPage, onTabChange }) => {
   return (
@@ -8,9 +8,9 @@ const TempleIntroPage = ({ onBackToHome, onSelectScene, scenes, currentPage, onT
       onBackToHome={onBackToHome}
       onSelectScene={onSelectScene}
       scenes={scenes}
-      locationConfig={templeConfig}
-      sceneFilter={templeSceneFilter}
-      customStyles={templeStyles}
+      locationConfig={baoshengConfig}
+      sceneFilter={baoshengSceneFilter}
+      customStyles={baoshengStyles}
       currentPage={currentPage}
       onTabChange={onTabChange}
     />
