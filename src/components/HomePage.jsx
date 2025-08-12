@@ -11,6 +11,19 @@ import { PlayArrow, ChevronLeft, ChevronRight } from "@mui/icons-material";
 import TabBar from "./TabBar";
 import { useAvailableModels } from "@hooks/useAvailableModels";
 
+/* ---------------- CDN helpers ---------------- */
+const CDN_BASE = (import.meta.env.VITE_SITE_CDN || import.meta.env.VITE_MODELS_CDN || "")
+  .replace(/\/+$/, ""); // trim trailing slashes
+
+// If url is absolute, return as-is; otherwise prefix with CDN (or "/" if no CDN configured)
+const toCdnURL = (url) => {
+  if (!url) return null;
+  if (/^https?:\/\//i.test(url)) return url;
+  const rel = String(url).replace(/^\/+/, "");
+  return CDN_BASE ? `${CDN_BASE}/${rel}` : `/${rel}`;
+};
+
+/* ---------------- Shared UI shells ---------------- */
 const SectionCard = ({ children, sx }) => (
   <Box
     sx={{
@@ -27,7 +40,7 @@ const SectionCard = ({ children, sx }) => (
   </Box>
 );
 
-// replace your MediaPlaceholder with this more flexible version
+// Flexible placeholder that accepts custom children (video/iframe/img)
 const MediaPlaceholder = ({ label = "video / image", children }) => (
   <Box
     sx={{
@@ -64,7 +77,7 @@ const MediaPlaceholder = ({ label = "video / image", children }) => (
   </Box>
 );
 
-
+/* ---------------- Carousel ---------------- */
 const Carousel = ({ items = [], onSelect }) => {
   const viewportRef = useRef(null);
   const trackRef = useRef(null);
@@ -196,18 +209,18 @@ const normalizeLocationKey = (category) => {
 const labelForLocation = (key) =>
   key === "baosheng" ? "保生宮" : key === "chenghuang" ? "城隍廟" : key;
 
+/* ---------------- Page ---------------- */
 const HomePage = ({ currentPage, onTabChange }) => {
   const { scenes = [] } = useAvailableModels();
 
-  // build location cards: group by category and grab the first available thumbnail
+  // Build location cards: group by category, grab first available thumbnail (CDN-resolved)
   const carouselItems = useMemo(() => {
     const groups = new Map();
     (scenes || []).forEach((s) => {
       const key = normalizeLocationKey(s?.category);
       if (!key) return;
 
-      // try a few common thumbnail fields
-      const thumb =
+      const rawThumb =
         s?.thumbnail ||
         s?.thumb ||
         s?.image ||
@@ -215,6 +228,8 @@ const HomePage = ({ currentPage, onTabChange }) => {
         s?.preview_image ||
         s?.preview ||
         null;
+
+      const thumb = toCdnURL(rawThumb);
 
       if (!groups.has(key)) {
         groups.set(key, { key, label: labelForLocation(key), thumb });
@@ -225,7 +240,7 @@ const HomePage = ({ currentPage, onTabChange }) => {
     return Array.from(groups.values());
   }, [scenes]);
 
-  // clicking should behave exactly like TabBar: (event, value)
+  // Clicking behaves exactly like TabBar: (event, value)
   const handleSelectLocation = (it) => {
     if (!it?.key) return;
     onTabChange?.(null, it.key);
@@ -236,7 +251,6 @@ const HomePage = ({ currentPage, onTabChange }) => {
       {/* TabBar */}
       <TabBar currentPage={currentPage} onTabChange={onTabChange} />
 
-      {/* Hero / Page Title */}
       {/* Hero / Page Title with right-side background image */}
       <Box
         sx={{
@@ -244,21 +258,9 @@ const HomePage = ({ currentPage, onTabChange }) => {
           position: "relative",
           overflow: "hidden",
           py: 4,
-          minHeight: { md: 360 }, // keep a nice hero height
+          minHeight: { md: 360 },
         }}
       >
-        {/* background image anchored to the right, faded on the left */}
-        <Box
-          aria-hidden
-          sx={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            justifyContent: "flex-end",
-            pointerEvents: "none",
-            zIndex: 0,
-          }}
-        >
         {/* background image anchored to the right, no gap */}
         <Box
           aria-hidden
@@ -267,26 +269,23 @@ const HomePage = ({ currentPage, onTabChange }) => {
             top: 0,
             right: 0,
             bottom: 0,
-            width: { xs: "100%", md: "62%" },     // how much of the hero the image covers
+            width: { xs: "100%", md: "62%" },
             pointerEvents: "none",
             zIndex: 0,
-            backgroundImage: "url(/img/mainpage-bg.jpg)",  // your image
+            backgroundImage: `url(${toCdnURL("img/mainpage-bg.jpg")})`,
             backgroundSize: "cover",
             backgroundPosition: "right center",
-            // fade toward the left; adjust stops to taste
             WebkitMaskImage:
               "linear-gradient(to left, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 95%)",
             maskImage:
               "linear-gradient(to left, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 95%)",
-            // IMPORTANT: no margin-right, no border radius here
           }}
         />
 
-        </Box>
         <Container
           maxWidth="xl"
           sx={{
-            position: "relative", // sit above the bg image
+            position: "relative",
             zIndex: 1,
             maxWidth: { xl: "1400px" },
             mx: "auto",
@@ -316,12 +315,10 @@ const HomePage = ({ currentPage, onTabChange }) => {
                 </Typography>
               </Box>
             </Grid>
-
-            {/* remove the right <Grid> with <MediaPlaceholder /> */}
+            {/* Right column removed; bg image fills that space */}
           </Grid>
         </Container>
       </Box>
-
 
       {/* Main Content */}
       <Container
@@ -350,10 +347,10 @@ const HomePage = ({ currentPage, onTabChange }) => {
               <MediaPlaceholder>
                 <Box
                   component="video"
-                  src="\public\media\Main_entrance_full-video.mp4"
+                  src={toCdnURL("media/Main_entrance_full-video.mp4")}
+                  // poster={toCdnURL("img/main_entrance_poster.jpg")}
                   controls
                   playsInline
-                  // if you want it to auto play silently:
                   autoPlay
                   // muted
                   loop
@@ -391,10 +388,10 @@ const HomePage = ({ currentPage, onTabChange }) => {
               <MediaPlaceholder>
                 <Box
                   component="video"
-                  src="\public\media\Foo_dog_full.mp4"
+                  src={toCdnURL("media/Foo_dog_full.mp4")}
+                  // poster={toCdnURL("img/foo_dog_poster.jpg")}
                   controls
                   playsInline
-                  // if you want it to auto play silently:
                   autoPlay
                   // muted
                   loop
