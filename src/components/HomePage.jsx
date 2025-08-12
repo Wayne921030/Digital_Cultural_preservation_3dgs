@@ -259,7 +259,7 @@ const HomePage = ({ currentPage, onTabChange }) => {
             width: { xs: "100%", md: "62%" },
             pointerEvents: "none",
             zIndex: 0,
-            backgroundImage: `url(${modelsAsset("img/mainpage-bg.jpg")})`,
+            backgroundImage: `url("img/mainpage-bg.jpg")`,
             backgroundSize: "cover",
             backgroundPosition: "right center",
             WebkitMaskImage:
