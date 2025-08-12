@@ -13,12 +13,24 @@ import { useAvailableModels } from "@hooks/useAvailableModels";
 import { CDN } from "@/config";
 
 /* ---------------- models CDN helper (same source as models.json) ---------------- */
+// ⬇️ replace the old modelsAsset() with this
+
 const strip = (p = "") => String(p).replace(/^\/+/, "");
 const modelsAsset = (p) => {
   if (!p) return null;
-  if (/^https?:\/\//i.test(p)) return p;              // already absolute
-  return `${CDN.MODELS_BASE}/${strip(p)}`;            // prefix with MODELS_BASE
+  if (/^https?:\/\//i.test(p)) return p;          // absolute URL stays as-is (note: will still be blocked if no CORP)
+  return `${CDN.MODELS_BASE}/${strip(p)}`;        // always serve from models CDN (has CORP/CORS)
 };
+
+// convenient for thumbs that are just a filename (e.g., "Interior.png")
+const thumbURL = (raw) => {
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;      // keep absolute (but prefer moving these to models CDN)
+  const path = raw.includes("/") ? raw : `img/${raw}`;
+  return modelsAsset(path);
+};
+
+
 
 /* ---------------- Shared UI shells ---------------- */
 const SectionCard = ({ children, sx }) => (
@@ -76,14 +88,17 @@ const MediaPlaceholder = ({ label = "video / image", children }) => (
 /* ---------------- Carousel ---------------- */
 const Carousel = ({ items = [], onSelect }) => {
   const viewportRef = useRef(null);
+  const trackRef = useRef(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
 
   const updateArrows = () => {
     const el = viewportRef.current;
     if (!el) return;
-    setAtStart(el.scrollLeft <= 0);
-    setAtEnd(Math.ceil(el.scrollLeft + el.clientWidth) >= el.scrollWidth);
+    const start = el.scrollLeft <= 0;
+    const end = Math.ceil(el.scrollLeft + el.clientWidth) >= el.scrollWidth;
+    setAtStart(start);
+    setAtEnd(end);
   };
 
   useEffect(() => {
@@ -128,7 +143,10 @@ const Carousel = ({ items = [], onSelect }) => {
       </IconButton>
 
       <Box ref={viewportRef} sx={{ overflow: "hidden" }}>
-        <Box sx={{ display: "flex", gap: 2, scrollBehavior: "smooth", py: 0.5 }}>
+        <Box
+          ref={trackRef}
+          sx={{ display: "flex", gap: 2, scrollBehavior: "smooth", py: 0.5 }}
+        >
           {items.map((it, idx) => (
             <Box
               key={idx}
@@ -210,7 +228,7 @@ const HomePage = ({ currentPage, onTabChange }) => {
       const key = normalizeLocationKey(s?.category);
       if (!key) return;
 
-      const rawThumb =
+      const thumb =
         s?.thumbnail ||
         s?.thumb ||
         s?.image ||
@@ -218,8 +236,6 @@ const HomePage = ({ currentPage, onTabChange }) => {
         s?.preview_image ||
         s?.preview ||
         null;
-
-      const thumb = modelsAsset(rawThumb);
 
       if (!groups.has(key)) {
         groups.set(key, { key, label: labelForLocation(key), thumb });
