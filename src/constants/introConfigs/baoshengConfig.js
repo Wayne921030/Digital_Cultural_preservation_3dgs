@@ -8,8 +8,11 @@ export const baoshengConfig = {
   address: "308新竹縣寶山鄉大雅一街88號",
   heroImage: "/img/baosheng.jpeg",
   heroImages: [
-    "/img/baosheng/baosheng1.jpeg",
-    "/img/baosheng/baosheng2.jpeg",
+    "/img/baosheng/baosheng1.jpg",
+    "/img/baosheng/baosheng2.jpg",
+    "/img/baosheng/baosheng3.jpg",
+    "/img/baosheng/baosheng4.jpg",
+    "/img/baosheng/baosheng5.jpg",
   ],
   photoCredit: "（寶山大崎保生宮一景｜照片來源：大崎文史工作室）",
   storyTitle: "關於保生宮的故事",

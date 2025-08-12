@@ -3,7 +3,7 @@ import { ThemeProvider, CssBaseline, Box } from "@mui/material";
 import theme from "./theme";
 import Header from "./components/Header";
 const HomePage = lazy(() => import("./components/HomePage"));
-const TempleIntroPage = lazy(() => import("./components/introPages/TempleIntroPage"));
+const BaoshengIntroPage = lazy(() => import("./components/introPages/BaoshengIntroPage"));
 const ChenghuangIntroPage = lazy(() => import("./components/introPages/ChenghuangIntroPage"));
 const ViewerPage = lazy(() => import("./components/ViewerPage"));
 import DeviceSelector from "./components/DeviceSelector";
@@ -148,7 +148,7 @@ function App() {
       case "temple":
         return (
           <Suspense fallback={<div>Loading Temple Intro...</div>}>
-            <TempleIntroPage
+            <BaoshengIntroPage
               onBackToHome={handleBackToHome}
               onSelectScene={handleSceneSelectFromTemple}
               scenes={scenes}
