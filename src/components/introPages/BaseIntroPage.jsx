@@ -15,9 +15,8 @@ import {
 } from "@mui/material";
 import {
   LocationOn,
-  ArrowBack,
   PlayArrow,
-  ViewInAr,
+  ViewInAr as ViewInArIcon,
 } from "@mui/icons-material";
 import ImageCarousel from "../ImageCarousel";
 import TabBar from "../TabBar";
@@ -95,16 +94,7 @@ const BaseIntroPage = ({
   const filteredScenes = scenes && scenes.length > 0 
     ? (sceneFilter ? sceneFilter(scenes) : scenes.filter(scene => {
         // Default filtering logic - can be overridden by sceneFilter prop
-        const category = scene.category?.toLowerCase();
-        const sceneName = (scene.scene_name || scene.name || "").toLowerCase();
-        
-        return category === "temple" || 
-               category === "baosheng" || 
-               category === "保生宮" ||
-               sceneName.includes("temple") ||
-               sceneName.includes("baosheng") ||
-               sceneName.includes("保生") ||
-               sceneName.includes("宮");
+        return true;
       }))
     : [];
 
@@ -181,6 +171,7 @@ const BaseIntroPage = ({
               margin: "0 auto",
               color: styles.textColor,
               mb: 4,
+              whiteSpace: "pre-line",
             }}
           >
             {config.description}
@@ -302,7 +293,7 @@ const BaseIntroPage = ({
               const sceneId = scene.id || scene.scene_name;
               const sceneName = scene.name || scene.scene_name;
               const sceneDescription = scene.description || "體驗3D場景";
-              const sceneImage = scene.image || "/img/Main_entrance.png";
+              const sceneImage = scene.image || null;
               const sceneFeatures = scene.features || ["高解析度建模", "真實材質渲染", "互動式導覽"];
               
               return (
@@ -322,17 +313,31 @@ const BaseIntroPage = ({
                     }}
                     onClick={() => handleSceneSelect(scene)}
                   >
-                    <CardMedia
-                      component="img"
-                      height="250"
-                      image={sceneImage}
-                      alt={sceneName}
-                      sx={{ objectFit: "cover" }}
-                    />
+                    {sceneImage ? (
+                      <CardMedia
+                        component="img"
+                        height="250"
+                        image={sceneImage}
+                        alt={sceneName}
+                        sx={{ objectFit: "cover" }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          height: 250,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: "grey.200",
+                        }}
+                      >
+                        <ViewInArIcon sx={{ fontSize: 60, color: 'white' }} />
+                      </Box>
+                    )}
                     <CardContent sx={{ p: 3 }}>
                       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                         <Avatar sx={{ bgcolor: styles.secondaryColor, mr: 2 }}>
-                          <ViewInAr sx={{ color: "white" }} />
+                          <ViewInArIcon sx={{ color: "white" }} />
                         </Avatar>
                         <Typography
                           variant="h5"
