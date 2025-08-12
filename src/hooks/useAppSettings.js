@@ -65,15 +65,9 @@ export const useAppSettings = () => {
     isAutoRotating,
     selectedDevice,
     selectedScene,
-    selectedFileType,
     selectedResolution,
-    deviceSelected,
-    sceneSelected,
-    updateSettings,
     toggleAutoRotate,
     updateSelectedDevice,
     updateSceneSelection,
-    resetDeviceSelection,
-    resetSceneSelection,
   };
 };
