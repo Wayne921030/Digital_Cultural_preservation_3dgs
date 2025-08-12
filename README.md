@@ -32,8 +32,7 @@ This application serves as a digital preservation platform that allows users to 
 
    ```bash
    git clone <repository-url>
-   git checkout 3dgs-frontend
-   cd 3dgs-frontend
+   git checkout main
    ```
 
 2. **Install dependencies**
