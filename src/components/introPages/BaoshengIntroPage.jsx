@@ -2,7 +2,7 @@ import React from "react";
 import BaseIntroPage from "./BaseIntroPage";
 import { baoshengConfig, baoshengSceneFilter, baoshengStyles } from "../../constants/introConfigs/baoshengConfig";
 
-const TempleIntroPage = ({ onBackToHome, onSelectScene, scenes, currentPage, onTabChange }) => {
+const BaoshengIntroPage = ({ onBackToHome, onSelectScene, scenes, currentPage, onTabChange }) => {
   return (
     <BaseIntroPage
       onBackToHome={onBackToHome}
@@ -17,4 +17,4 @@ const TempleIntroPage = ({ onBackToHome, onSelectScene, scenes, currentPage, onT
   );
 };
 
-export default TempleIntroPage; 
+export default BaoshengIntroPage; 
