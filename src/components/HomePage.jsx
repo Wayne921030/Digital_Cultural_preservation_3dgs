@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -7,12 +7,9 @@ import {
   Container,
   Button,
 } from "@mui/material";
-import {
-  PlayArrow,
-  ChevronLeft,
-  ChevronRight,
-} from "@mui/icons-material";
+import { PlayArrow, ChevronLeft, ChevronRight } from "@mui/icons-material";
 import TabBar from "./TabBar";
+import { useAvailableModels } from "@hooks/useAvailableModels";
 
 const SectionCard = ({ children, sx }) => (
   <Box
@@ -118,20 +115,10 @@ const Carousel = ({ items = [], onSelect }) => {
         <ChevronLeft />
       </IconButton>
 
-      <Box
-        ref={viewportRef}
-        sx={{
-          overflow: "hidden",
-        }}
-      >
+      <Box ref={viewportRef} sx={{ overflow: "hidden" }}>
         <Box
           ref={trackRef}
-          sx={{
-            display: "flex",
-            gap: 2,
-            scrollBehavior: "smooth",
-            py: 0.5,
-          }}
+          sx={{ display: "flex", gap: 2, scrollBehavior: "smooth", py: 0.5 }}
         >
           {items.map((it, idx) => (
             <Box
@@ -152,7 +139,16 @@ const Carousel = ({ items = [], onSelect }) => {
                 "&:focus-visible": { boxShadow: "0 0 0 3px #cbd5e1" },
               }}
             >
-              <Box sx={{ height: 150, bgcolor: "#e5e5e5" }} />
+              {it.thumb ? (
+                <Box
+                  component="img"
+                  src={it.thumb}
+                  alt={it.label}
+                  sx={{ width: "100%", height: 150, objectFit: "cover" }}
+                />
+              ) : (
+                <Box sx={{ height: 150, bgcolor: "#e5e5e5" }} />
+              )}
               <Box sx={{ p: 1.25, textAlign: "center", fontWeight: 600 }}>
                 {it.label}
               </Box>
@@ -183,15 +179,51 @@ const Carousel = ({ items = [], onSelect }) => {
   );
 };
 
+/* ---- helpers: map scene.category → stable location key & label ---- */
+const normalizeLocationKey = (category) => {
+  const s = (category || "").toString().trim().toLowerCase();
+  if (!s) return null;
+  if (s.includes("baosheng") || s.includes("保生")) return "baosheng";
+  if (s.includes("chenghuang") || s.includes("城隍")) return "chenghuang";
+  return null; // ignore unknown/other categories for the home slider
+};
+const labelForLocation = (key) =>
+  key === "baosheng" ? "保生宮" : key === "chenghuang" ? "城隍廟" : key;
+
 const HomePage = ({ currentPage, onTabChange }) => {
-  const carouselItems = [
-    { label: "Location A" },
-    { label: "Location B" },
-    { label: "Location C" },
-    { label: "Location D" },
-    { label: "Location E" },
-    { label: "Location F" },
-  ];
+  const { scenes = [] } = useAvailableModels();
+
+  // build location cards: group by category and grab the first available thumbnail
+  const carouselItems = useMemo(() => {
+    const groups = new Map();
+    (scenes || []).forEach((s) => {
+      const key = normalizeLocationKey(s?.category);
+      if (!key) return;
+
+      // try a few common thumbnail fields
+      const thumb =
+        s?.thumbnail ||
+        s?.thumb ||
+        s?.image ||
+        s?.previewImage ||
+        s?.preview_image ||
+        s?.preview ||
+        null;
+
+      if (!groups.has(key)) {
+        groups.set(key, { key, label: labelForLocation(key), thumb });
+      } else if (!groups.get(key).thumb && thumb) {
+        groups.get(key).thumb = thumb;
+      }
+    });
+    return Array.from(groups.values());
+  }, [scenes]);
+
+  // clicking should behave exactly like TabBar: (event, value)
+  const handleSelectLocation = (it) => {
+    if (!it?.key) return;
+    onTabChange?.(null, it.key);
+  };
 
   return (
     <Box sx={{ minHeight: "calc(100vh - 64px)" }}>
@@ -256,13 +288,9 @@ const HomePage = ({ currentPage, onTabChange }) => {
       >
         {/* Background & Purpose / Motivation */}
         <SectionCard sx={{ mb: 3 }}>
-          <Typography
-            variant="h5"
-            sx={{ color: "#6B5B47", fontWeight: 700, mb: 2 }}
-          >
+          <Typography variant="h5" sx={{ color: "#6B5B47", fontWeight: 700, mb: 2 }}>
             專案背景與動機
           </Typography>
-
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 7 }}>
               <Typography sx={{ color: "#4b5563", lineHeight: 1.8 }}>
@@ -279,18 +307,19 @@ const HomePage = ({ currentPage, onTabChange }) => {
 
         {/* Tech Detail + Model / Frame */}
         <SectionCard>
-          <Typography
-            variant="h5"
-            sx={{ color: "#6B5B47", fontWeight: 700, mb: 2 }}
-          >
+          <Typography variant="h5" sx={{ color: "#6B5B47", fontWeight: 700, mb: 2 }}>
             技術細節
           </Typography>
-
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 7 }}>
               <Typography sx={{ color: "#4b5563", lineHeight: 1.8 }}>
-                本專案結合攝影測量 (Photogrammetry) 與神經渲染 (Neural Rendering)，打造高精度的文化遺產三維重建流程。整個過程首先從寺廟建築的系統化拍攝展開：透過不同視角與高度拍攝大量具重疊區域的照片，確保能完整覆蓋目標場景。 接著利用 COLMAP 進行 Structure from Motion (SfM) 以獲取每張影像的相機參數並生成稀疏三維點雲，為後續模型構建奠定精確的幾何基礎。 
-                在核心的3D模型生成階段，我們採用了3D Gaussian Splatting, 3DGS技術。這項方法透過優化數百萬個三維高斯基元，精準地表現場景的幾何形狀與外觀。每個高斯基元使用位置、不透明度等參數呈現不同視角下的色彩變化。最後透過可微光柵化(Differentiable Rasterization)的反覆訓練逐步提升模型的真實感。不論是精緻的雕刻、建築紋理、歲月風化的表面，或是錯綜複雜的空間結構，甚至是自然光影效果都能被高度還原。
+                本專案結合攝影測量 (Photogrammetry) 與神經渲染 (Neural Rendering)，打造高精度的文化遺產三維重建流程。
+                整個過程首先從寺廟建築的系統化拍攝展開：透過不同視角與高度拍攝大量具重疊區域的照片，確保能完整覆蓋目標場景。 
+                接著利用 COLMAP 進行 Structure from Motion (SfM) 以獲取每張影像的相機參數並生成稀疏三維點雲，為後續模型構建奠定精確的幾何基礎。 
+                在核心的3D模型生成階段，我們採用了3D Gaussian Splatting, 3DGS技術。
+                這項方法透過優化數百萬個三維高斯基元，精準地表現場景的幾何形狀與外觀。每個高斯基元使用位置、不透明度等參數呈現不同視角下的色彩變化。
+                最後透過可微光柵化(Differentiable Rasterization)的反覆訓練逐步提升模型的真實感。
+                不論是精緻的雕刻、建築紋理、歲月風化的表面，或是錯綜複雜的空間結構，甚至是自然光影效果都能被高度還原。
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 5 }}>
@@ -309,22 +338,12 @@ const HomePage = ({ currentPage, onTabChange }) => {
               mb: 1.5,
             }}
           >
-            <Typography
-              variant="h5"
-              sx={{ color: "#6B5B47", fontWeight: 700 }}
-            >
+            <Typography variant="h5" sx={{ color: "#6B5B47", fontWeight: 700 }}>
               場景選擇
             </Typography>
           </Box>
 
-          <Carousel
-            items={carouselItems}
-            onSelect={(it) => {
-              // Hook this up however you like (e.g., navigate to Scenes tab)
-              // onTabChange?.("scenes")
-              console.log("Selected:", it.label);
-            }}
-          />
+          <Carousel items={carouselItems} onSelect={handleSelectLocation} />
         </SectionCard>
       </Container>
     </Box>
