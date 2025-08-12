@@ -291,7 +291,7 @@ const BaseIntroPage = ({
             {sceneConfigs.map((scene) => {
               // Handle both actual scene data and fallback hardcoded data
               const sceneId = scene.id || scene.scene_name;
-              const sceneName = scene.name || scene.scene_name;
+              const sceneName = scene.name || scene.scene_name_zh || scene.scene_name_en || scene.scene_name;
               const sceneDescription = scene.description || "體驗3D場景";
               const sceneImage = scene.image || null;
               const sceneFeatures = scene.features || ["高解析度建模", "真實材質渲染", "互動式導覽"];
