@@ -27,7 +27,8 @@ const SectionCard = ({ children, sx }) => (
   </Box>
 );
 
-const MediaPlaceholder = ({ label = "video / image" }) => (
+// replace your MediaPlaceholder with this more flexible version
+const MediaPlaceholder = ({ label = "video / image", children }) => (
   <Box
     sx={{
       height: { xs: 220, md: 260 },
@@ -41,23 +42,28 @@ const MediaPlaceholder = ({ label = "video / image" }) => (
       textAlign: "center",
     }}
   >
-    <Box sx={{ textAlign: "center" }}>
-      <IconButton
-        size="large"
-        sx={{
-          backgroundColor: "rgba(139, 115, 85, 0.9)",
-          color: "white",
-          "&:hover": { backgroundColor: "rgba(139, 115, 85, 1)" },
-        }}
-      >
-        <PlayArrow sx={{ fontSize: 36 }} />
-      </IconButton>
-      <Typography variant="subtitle1" sx={{ mt: 1.5, color: "#6B5B47" }}>
-        {label}
-      </Typography>
-    </Box>
+    {children ? (
+      children
+    ) : (
+      <>
+        <IconButton
+          size="large"
+          sx={{
+            backgroundColor: "rgba(139, 115, 85, 0.9)",
+            color: "white",
+            "&:hover": { backgroundColor: "rgba(139, 115, 85, 1)" },
+          }}
+        >
+          <PlayArrow sx={{ fontSize: 36 }} />
+        </IconButton>
+        <Typography variant="subtitle1" sx={{ mt: 1.5, color: "#6B5B47" }}>
+          {label}
+        </Typography>
+      </>
+    )}
   </Box>
 );
+
 
 const Carousel = ({ items = [], onSelect }) => {
   const viewportRef = useRef(null);
@@ -231,15 +237,57 @@ const HomePage = ({ currentPage, onTabChange }) => {
       <TabBar currentPage={currentPage} onTabChange={onTabChange} />
 
       {/* Hero / Page Title */}
+      {/* Hero / Page Title with right-side background image */}
       <Box
         sx={{
           background: "linear-gradient(180deg, #DCE4C9 0%, #F8F6F2 100%)",
+          position: "relative",
+          overflow: "hidden",
           py: 4,
+          minHeight: { md: 360 }, // keep a nice hero height
         }}
       >
+        {/* background image anchored to the right, faded on the left */}
+        <Box
+          aria-hidden
+          sx={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            justifyContent: "flex-end",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        >
+        {/* background image anchored to the right, no gap */}
+        <Box
+          aria-hidden
+          sx={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: { xs: "100%", md: "62%" },     // how much of the hero the image covers
+            pointerEvents: "none",
+            zIndex: 0,
+            backgroundImage: "url(/img/mainpage-bg.jpg)",  // your image
+            backgroundSize: "cover",
+            backgroundPosition: "right center",
+            // fade toward the left; adjust stops to taste
+            WebkitMaskImage:
+              "linear-gradient(to left, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 95%)",
+            maskImage:
+              "linear-gradient(to left, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 95%)",
+            // IMPORTANT: no margin-right, no border radius here
+          }}
+        />
+
+        </Box>
         <Container
           maxWidth="xl"
           sx={{
+            position: "relative", // sit above the bg image
+            zIndex: 1,
             maxWidth: { xl: "1400px" },
             mx: "auto",
             px: { xs: 2, sm: 3, md: 4, lg: 6, xl: 8 },
@@ -269,12 +317,11 @@ const HomePage = ({ currentPage, onTabChange }) => {
               </Box>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
-              <MediaPlaceholder label="Video for showcase" />
-            </Grid>
+            {/* remove the right <Grid> with <MediaPlaceholder /> */}
           </Grid>
         </Container>
       </Box>
+
 
       {/* Main Content */}
       <Container
@@ -300,7 +347,25 @@ const HomePage = ({ currentPage, onTabChange }) => {
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 5 }}>
-              <MediaPlaceholder label="Background video / image" />
+              <MediaPlaceholder>
+                <Box
+                  component="video"
+                  src="\public\media\Main_entrance_full-video.mp4"
+                  controls
+                  playsInline
+                  // if you want it to auto play silently:
+                  autoPlay
+                  // muted
+                  loop
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "inherit",
+                    display: "block",
+                  }}
+                />
+              </MediaPlaceholder>
             </Grid>
           </Grid>
         </SectionCard>
@@ -323,7 +388,25 @@ const HomePage = ({ currentPage, onTabChange }) => {
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 5 }}>
-              <MediaPlaceholder label="GIF / short demo" />
+              <MediaPlaceholder>
+                <Box
+                  component="video"
+                  src="\public\media\Foo_dog_full.mp4"
+                  controls
+                  playsInline
+                  // if you want it to auto play silently:
+                  autoPlay
+                  // muted
+                  loop
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "inherit",
+                    display: "block",
+                  }}
+                />
+              </MediaPlaceholder>
             </Grid>
           </Grid>
         </SectionCard>
