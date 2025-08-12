@@ -298,7 +298,6 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, 
             <Grid container spacing={3}>
               {scenesWithBestOptions.map((scene) => {
                 const sceneImage = scene.image || null;
-                console.log(sceneImage);
                 return (
                   <Grid size={{xs: 12, sm: 6, md: 3}} key={scene.scene_name}>
                     <Card 

@@ -15,18 +15,16 @@ import Footer from "./components/Footer";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("home"); // 'home', 'temple', 'scenes', 'viewer'
-  const [selectedSceneFromTemple, setSelectedSceneFromTemple] = useState(null);
+  const [selectedSceneFromIntroPage, setSelectedSceneFromIntroPage] = useState(null);
 
   // Use custom Hook to manage settings
   const {
+    settings,
     isAutoRotating,
-    isSwingRotating,
     selectedDevice,
     selectedScene,
     selectedResolution,
-    sceneSelected,
     toggleAutoRotate,
-    toggleSwingRotate,
     updateSelectedDevice,
     updateSceneSelection
   } = useAppSettings();
@@ -81,7 +79,7 @@ function App() {
 
   const handleBackToHome = () => {
     setCurrentPage("home");
-    setSelectedSceneFromTemple(null);
+    setSelectedSceneFromIntroPage(null);
   };
 
   const handleTabChange = (event, newValue) => {
@@ -97,23 +95,23 @@ function App() {
     }
   };
 
-  const handleSceneSelectFromTemple = (scene) => {
-    setSelectedSceneFromTemple(scene);
+  const handleSceneSelectFromIntroPage = (scene) => {
+    setSelectedSceneFromIntroPage(scene);
     setCurrentPage("device-selection");
   };
 
   const handleDeviceSelect = (device) => {
     updateSelectedDevice(device);
-    if (selectedSceneFromTemple && 
-        selectedSceneFromTemple.file_types && 
-        selectedSceneFromTemple.file_types.length > 0 &&
-        selectedSceneFromTemple.file_types[0].resolutions &&
-        selectedSceneFromTemple.file_types[0].resolutions.length > 0) {
+    if (selectedSceneFromIntroPage && 
+        selectedSceneFromIntroPage.file_types && 
+        selectedSceneFromIntroPage.file_types.length > 0 &&
+        selectedSceneFromIntroPage.file_types[0].resolutions &&
+        selectedSceneFromIntroPage.file_types[0].resolutions.length > 0) {
       // 從保生宮介紹頁面來的流程
       updateSceneSelection(
-        selectedSceneFromTemple,
-        selectedSceneFromTemple.file_types[0],
-        selectedSceneFromTemple.file_types[0].resolutions[0]
+        selectedSceneFromIntroPage,
+        selectedSceneFromIntroPage.file_types[0],
+        selectedSceneFromIntroPage.file_types[0].resolutions[0]
       );
       setCurrentPage("viewer");
     } else {
@@ -150,7 +148,7 @@ function App() {
           <Suspense fallback={<div>Loading Temple Intro...</div>}>
             <BaoshengIntroPage
               onBackToHome={handleBackToHome}
-              onSelectScene={handleSceneSelectFromTemple}
+              onSelectScene={handleSceneSelectFromIntroPage}
               scenes={scenes}
               currentPage="baosheng"
               onTabChange={handleTabChange}
@@ -163,7 +161,7 @@ function App() {
           <Suspense fallback={<div>Loading Chenghuang Temple Intro...</div>}>
             <ChenghuangIntroPage
               onBackToHome={handleBackToHome}
-              onSelectScene={handleSceneSelectFromTemple}
+              onSelectScene={handleSceneSelectFromIntroPage}
               scenes={scenes}
               currentPage="chenghuang"
               onTabChange={handleTabChange}
@@ -219,15 +217,12 @@ function App() {
               onNavigateToScenes={handleNavigateToScenes}
               onResetCamera={() => resetCameraRef.current?.()}
               onToggleAutoRotate={toggleAutoRotate}
-              onToggleSwingRotate={toggleSwingRotate}
               isAutoRotating={isAutoRotating}
-              isSwingRotating={isSwingRotating}
               selectedScene={selectedScene}
               selectedResolution={selectedResolution}
               selectedDevice={selectedDevice}
               viewerRef={viewerRef}
               resetCameraRef={resetCameraRef}
-              sceneSelected={sceneSelected}
             />
           </Suspense>
         );

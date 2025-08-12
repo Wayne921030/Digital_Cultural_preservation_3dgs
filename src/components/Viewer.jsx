@@ -2,10 +2,10 @@ import React, { forwardRef, useCallback } from "react";
 import { useViewer } from "../hooks/useViewer";
 
 export default forwardRef(function Viewer(props, outerRef) {
-  const { settings, selectedResolution, sceneSelected, onResetCamera } = props;
+  const { settings, onResetCamera, isAutoRotating, selectedResolution, selectedScene, orbit } = props;
 
   const { viewerRef, resetCamera, isLoading, error } =
-    useViewer(settings, selectedResolution, sceneSelected);
+    useViewer(settings, selectedResolution, selectedScene, isAutoRotating, orbit);
 
   // Expose resetCamera function to parent through onResetCamera ref
   React.useEffect(() => {
