@@ -3,7 +3,7 @@
 ![Digital Cultural Preservation 3DGS Interface](./docs/demo.jpeg)
 A modern web application for interactive viewing of 3D Gaussian Splatting models in digital cultural preservation projects. This platform enables users to explore high-quality 3D reconstructions of cultural heritage sites and artifacts with device-optimized performance.
 
-🌐 **Live Demo**: [https://d7yb14d27s1sv.cloudfront.net/index.html](https://d7yb14d27s1sv.cloudfront.net/index.html)
+🌐 **Live Website**: https://cultural-preservation-3d.com/
 
 ## 🎯 Overview
 
