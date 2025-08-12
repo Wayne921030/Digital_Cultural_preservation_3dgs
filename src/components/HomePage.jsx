@@ -231,12 +231,6 @@ const HomePage = ({ currentPage, onTabChange }) => {
                 >
                   3D Culture Preservation
                 </Typography>
-                <Typography
-                  variant="h5"
-                  sx={{ color: "#8B7355", mb: 2, fontStyle: "italic" }}
-                >
-                  Culture preservation-related
-                </Typography>
                 <Typography variant="h4" sx={{ color: "#6B5B47", mb: 4 }}>
                   數位文化遺產保護
                 </Typography>
