@@ -159,31 +159,6 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, 
 
   const scenesWithBestOptions = getScenesWithBestOptions(filteredScenes, recommendedResolutions)
 
-  // Get scene preview image
-  const getSceneImage = (sceneName) => {
-    switch (sceneName) {
-      case 'Rooftop_Drone':
-        return 'Rooftop_Drone.png'
-      case 'Foo_dog':
-        return 'Foo_dog.png'
-      case 'Main_entrance':
-        return 'Main_entrance.png'
-      case 'Interior':
-        return 'Interior.png'
-      case 'chenghuang1':
-      case 'chenghuang_main':
-        return 'chenghuang/chenghuang1.jpeg'
-      case 'chenghuang2':
-      case 'chenghuang_interior':
-        return 'chenghuang/chenghuang2.jpeg'
-      case 'chenghuang3':
-      case 'chenghuang_rooftop':
-        return 'chenghuang/chenghuang3.jpeg'
-      default:
-        return null
-    }
-  }
-
   return (
     <Box sx={{ 
       background: '#F8F6F2',
@@ -322,7 +297,8 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, 
           ) : (
             <Grid container spacing={3}>
               {scenesWithBestOptions.map((scene) => {
-                const sceneImage = getSceneImage(scene.scene_name)
+                const sceneImage = scene.image || null;
+                console.log(sceneImage);
                 return (
                   <Grid size={{xs: 12, sm: 6, md: 3}} key={scene.scene_name}>
                     <Card 
@@ -344,7 +320,7 @@ function SceneSelector({ scenes, selectedDevice, onSceneSelect, onDeviceSelect, 
                         <CardMedia
                           component="img"
                           height="200"
-                          image={`/img/${sceneImage}`}
+                          image={`${sceneImage}`}
                           alt={scene.scene_name.replace(/_/g, ' ')}
                           sx={{ objectFit: 'cover' }}
                         />

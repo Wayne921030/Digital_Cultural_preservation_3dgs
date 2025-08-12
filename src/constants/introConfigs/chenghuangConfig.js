@@ -47,13 +47,7 @@ export const chenghuangConfig = {
 export const chenghuangSceneFilter = (scenes) => {
   return scenes.filter(scene => {
     const category = scene.category?.toLowerCase();
-    const sceneName = (scene.scene_name || scene.name || "").toLowerCase();
-    
-    return category === "chenghuang" || 
-           category === "城隍廟" || 
-           sceneName.includes("chenghuang") ||
-           sceneName.includes("城隍") ||
-           sceneName.includes("廟");
+    return category === "chenghuang" || category === "城隍廟";
   });
 };
 

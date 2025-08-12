@@ -1,26 +1,5 @@
-import { useMemo, useState } from "react";
-import { useAvailableModels } from "../hooks/useAvailableModels.js";
-import { DEVICE_CONFIGS } from "../constants/index.js";
-import { useViewer } from "../hooks/useViewer";
 import React, { forwardRef, useCallback } from "react";
-
-
-const ORDER = ["low","medium","high","full"];
-
-function pickResolution(scene, deviceKey) {
-  if (!scene?.file_types?.length) return null;
-  const ft = scene.file_types.find(t => t.type === ".splat") ?? scene.file_types[0];
-  const prefs = DEVICE_CONFIGS[deviceKey]?.recommendedResolutions ?? ORDER;
-  for (const r of prefs) {
-    const hit = ft.resolutions?.find(x => x.resolution === r);
-    if (hit) return hit;
-  }
-  for (const r of ORDER) {
-    const hit = ft.resolutions?.find(x => x.resolution === r);
-    if (hit) return hit;
-  }
-  return null;
-}
+import { useViewer } from "../hooks/useViewer";
 
 export default forwardRef(function Viewer(props, outerRef) {
   const { settings, selectedResolution, sceneSelected, onResetCamera } = props;
