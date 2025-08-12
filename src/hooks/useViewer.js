@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
 import { isSupportedFile } from "../utils/fileUtils";
 import { modelURL } from "../config";
+import { useAutoRotate } from "./useAutoRotate";
 
 // ✅ Single point of control for viewer defaults
 const DEFAULT_SETTINGS = { antialiased: true, alphaThreshold: 0 };
@@ -67,10 +68,11 @@ if (import.meta?.env?.DEV && typeof window !== "undefined") {
 }
 
 export const useViewer = (
-  // 👇 If a parent does NOT pass settings, we use DEFAULT_SETTINGS
   settings = DEFAULT_SETTINGS,
   selectedResolution,
-  sceneSelected
+  selectedScene,
+  isAutoRotating = false,
+  orbit = "frontFocus"
 ) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -78,6 +80,9 @@ export const useViewer = (
   const viewerInstanceRef = useRef(null);
   const isMountedRef = useRef(true);
   const currentSettingsRef = useRef(DEFAULT_SETTINGS);
+
+  // Use the auto-rotate hook
+  useAutoRotate(viewerInstanceRef.current, isAutoRotating, 360, orbit);
 
   // Load model into an existing viewer
   const loadModel = useCallback(
@@ -127,12 +132,12 @@ export const useViewer = (
       alphaThreshold: Number(settings?.alphaThreshold ?? DEFAULT_SETTINGS.alphaThreshold),
     };
 
-    if (!viewerRef.current || !sceneSelected) return;
+    if (!viewerRef.current || !selectedScene) return;
 
     teardownViewer(viewerInstanceRef);
 
-    const orbitPreset = sceneSelected?.orbit || "frontFocus";
-    const cam = sceneSelected?.camera || {};
+    const orbitPreset = selectedScene?.orbit || "frontFocus";
+    const cam = selectedScene?.camera || {};
     const cameraUp = Array.isArray(cam.up) ? cam.up : [0, -1, -0];
     const initialCameraPosition = Array.isArray(cam.position) ? cam.position : [0, 0, 6];
     const initialCameraLookAt = Array.isArray(cam.target) ? cam.target : [0, 0, 0];
@@ -174,7 +179,7 @@ export const useViewer = (
     } finally {
       setIsLoading(false);
     }
-  }, [settings, selectedResolution, sceneSelected, loadModel]);
+  }, [settings, selectedResolution, selectedScene, loadModel]);
 
   // Mount/unmount lifecycle
   useEffect(() => {
@@ -187,8 +192,8 @@ export const useViewer = (
 
   // Init on scene change
   useEffect(() => {
-    if (sceneSelected) initializeViewer();
-  }, [sceneSelected, initializeViewer]);
+    if (selectedScene) initializeViewer();
+  }, [selectedScene, initializeViewer]);
 
   // Settings changes: avoid heavy re-init unless AA toggled
   useEffect(() => {
@@ -215,25 +220,25 @@ export const useViewer = (
       return;
     }
 
-    if (changedAlpha && sceneSelected && selectedResolution) {
+    if (changedAlpha && selectedScene && selectedResolution) {
       currentSettingsRef.current = next;
       try {
         viewerInstanceRef.current.clearScenes?.();
       } catch { /* ignore */ }
       loadModel(viewerInstanceRef.current, next, selectedResolution);
     }
-  }, [settings, selectedResolution, sceneSelected, initializeViewer, loadModel]);
+  }, [settings, selectedResolution, selectedScene, initializeViewer, loadModel]);
 
   // Public camera reset (use scene defaults if available)
   const resetCamera = useCallback(() => {
     if (!viewerInstanceRef.current) return;
-    const cam = sceneSelected?.camera || {};
+    const cam = selectedScene?.camera || {};
     const pos = Array.isArray(cam.position) ? cam.position : [0, 0, 6];
     const tgt = Array.isArray(cam.target) ? cam.target : [0, 0, 0];
     viewerInstanceRef.current.camera.position.set(...pos);
     viewerInstanceRef.current.controls.target.set(...tgt);
     viewerInstanceRef.current.controls.update?.();
-  }, [sceneSelected]);
+  }, [selectedScene]);
 
   return { isLoading, error, viewerRef, viewerInstanceRef, resetCamera };
 };

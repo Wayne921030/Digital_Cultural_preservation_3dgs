@@ -8,15 +8,12 @@ const ViewerPage = ({
   onNavigateToScenes,
   onResetCamera,
   onToggleAutoRotate,
-  onToggleSwingRotate,
   isAutoRotating,
-  isSwingRotating,
   selectedScene,
   selectedResolution,
   selectedDevice,
   viewerRef,
   resetCameraRef,
-  sceneSelected,
 }) => {
   const orbit = selectedScene?.orbit || "frontFocus";
   const isTopDown360 = orbit === "topDown360";
@@ -112,21 +109,21 @@ const ViewerPage = ({
 
               {isFrontFocus && (
                 <Button
-                  variant={isSwingRotating ? "contained" : "outlined"}
+                  variant={isAutoRotating ? "contained" : "outlined"}
                   size="small"
-                  onClick={onToggleSwingRotate}
+                  onClick={onToggleAutoRotate}
                   sx={{
-                    backgroundColor: isSwingRotating ? "#8B7355" : "transparent",
+                    backgroundColor: isAutoRotating ? "#8B7355" : "transparent",
                     borderColor: "#8B7355",
-                    color: isSwingRotating ? "white" : "#8B7355",
+                    color: isAutoRotating ? "white" : "#8B7355",
                     "&:hover": {
-                      backgroundColor: isSwingRotating
+                      backgroundColor: isAutoRotating
                         ? "#6B5B47"
                         : "rgba(139, 115, 85, 0.1)",
                     },
                   }}
                 >
-                  {isSwingRotating ? "Stop Swing" : "Start Swing"}
+                  {isAutoRotating ? "Stop Swing" : "Start Swing"}
                 </Button>
               )}
             </Box>
@@ -144,12 +141,10 @@ const ViewerPage = ({
               }
             }}
             isAutoRotating={isAutoRotating}
-            isSwingRotating={isSwingRotating}
             selectedResolution={selectedResolution}
-            sceneSelected={sceneSelected}
             selectedScene={selectedScene}
+            orbit={orbit}
             ref={viewerRef}
-            // 👇 No settings prop — useViewer.js owns defaults now
           />
         </Suspense>
       </Box>
