@@ -35,14 +35,6 @@ function Header() {
           </Typography>
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Box sx={{ display: 'flex', gap: 3, fontSize: '0.9rem' }}>
-              <Link href="#" sx={{ color: 'white', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
-                聯絡我們
-              </Link>
-              <Link href="#" sx={{ color: 'white', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
-                支援
-              </Link>
-            </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Language sx={{ fontSize: 16 }} />
               <FormControl size="small" sx={{ minWidth: 80 }}>

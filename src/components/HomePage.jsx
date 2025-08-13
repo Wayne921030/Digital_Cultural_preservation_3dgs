@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -11,26 +11,6 @@ import { PlayArrow, ChevronLeft, ChevronRight } from "@mui/icons-material";
 import TabBar from "./TabBar";
 import { useAvailableModels } from "@hooks/useAvailableModels";
 import { CDN } from "@/config";
-
-/* ---------------- models CDN helper (same source as models.json) ---------------- */
-// ⬇️ replace the old modelsAsset() with this
-
-const strip = (p = "") => String(p).replace(/^\/+/, "");
-const modelsAsset = (p) => {
-  if (!p) return null;
-  if (/^https?:\/\//i.test(p)) return p;          // absolute URL stays as-is (note: will still be blocked if no CORP)
-  return `${CDN.MODELS_BASE}/${strip(p)}`;        // always serve from models CDN (has CORP/CORS)
-};
-
-// convenient for thumbs that are just a filename (e.g., "Interior.png")
-const thumbURL = (raw) => {
-  if (!raw) return null;
-  if (/^https?:\/\//i.test(raw)) return raw;      // keep absolute (but prefer moving these to models CDN)
-  const path = raw.includes("/") ? raw : `img/${raw}`;
-  return modelsAsset(path);
-};
-
-
 
 /* ---------------- Shared UI shells ---------------- */
 const SectionCard = ({ children, sx }) => (
@@ -349,16 +329,17 @@ const HomePage = ({ currentPage, onTabChange }) => {
             </Grid>
             <Grid size={{ xs: 12, md: 5 }}>
               <MediaPlaceholder>
-                <Box
-                  component="video"
-                  src={modelsAsset("media/Main_entrance_full-video.mp4")}
-                  controls
-                  playsInline
-                  crossOrigin="anonymous"           
-                  autoPlay
-                  muted
-                  loop
-                  sx={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:"inherit", display:"block" }}
+                <Box  
+                  component="img"  // ← Change from "gif" to "img"
+                  src="/media/Main_entrance_full-video-ezgif.com-video-to-gif-converter.gif"
+                  alt="Main entrance animation"  // Add alt attribute for accessibility
+                  sx={{ 
+                    width: "100%", 
+                    height: "100%", 
+                    objectFit: "cover", 
+                    borderRadius: "inherit", 
+                    display: "block" 
+                  }}
                 />
               </MediaPlaceholder>
             </Grid>
@@ -375,25 +356,26 @@ const HomePage = ({ currentPage, onTabChange }) => {
               <Typography sx={{ color: "#4b5563", lineHeight: 1.8 }}>
                 本專案結合攝影測量 (Photogrammetry) 與神經渲染 (Neural Rendering)，打造高精度的文化遺產三維重建流程。 
                 整個過程首先從寺廟建築的系統化拍攝展開：透過不同視角與高度拍攝大量具重疊區域的照片，確保能完整覆蓋目標場景。 
-                接著利用 COLMAP 進行 Structure from Motion (SfM) 以獲取每張影像的相機參數並生成稀疏三維點雲，為後續模型構建奠定精確的幾何基礎。 
-                在核心的3D模型生成階段，我們採用了3D Gaussian Splatting, 3DGS技術。 
-                這項方法透過優化數百萬個三維高斯基元，精準地表現場景的幾何形狀與外觀。每個高斯基元使用位置、不透明度等參數呈現不同視角下的色彩變化。 
+                接著利用 COLMAP 進行 Structure from Motion (SfM) 以獲取每張影像的相機參數並生成稀疏三維點雲，為後續模型構建奠定精確的幾何基礎。<br/> 
+                在核心的3D模型生成階段，我們採用了3D Gaussian Splatting, 3DGS技術。
+                這項方法透過優化數百萬個三維高斯基元，精準地表現場景的幾何形狀與外觀。每個高斯基元使用位置、不透明度等參數呈現不同視角下的色彩變化。<br/>  
                 最後透過可微光柵化(Differentiable Rasterization)的反覆訓練逐步提升模型的真實感。 
                 不論是精緻的雕刻、建築紋理、歲月風化的表面，或是錯綜複雜的空間結構，甚至是自然光影效果都能被高度還原。
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 5 }}>
               <MediaPlaceholder>
-                <Box
-                  component="video"
-                  src={modelsAsset("media/Foo_dog_full-video.mp4")}
-                  controls
-                  playsInline
-                  crossOrigin="anonymous"
-                  autoPlay 
-                  muted 
-                  loop
-                  sx={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:"inherit", display:"block" }}
+                <Box  
+                  component="img"  // ← Change from "gif" to "img"
+                  src="/media/Foo_dog_full-ezgif.com-video-to-gif-converter.gif"
+                  alt="Foo_dog animation"  // Add alt attribute for accessibility
+                  sx={{ 
+                    width: "100%", 
+                    height: "100%", 
+                    objectFit: "cover", 
+                    borderRadius: "inherit", 
+                    display: "block" 
+                  }}
                 />
               </MediaPlaceholder>
             </Grid>
