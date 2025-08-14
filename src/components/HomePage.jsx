@@ -320,7 +320,7 @@ const HomePage = ({ currentPage, onTabChange }) => {
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 7 }}>
               <Typography sx={{ color: "#4b5563", lineHeight: 1.8 }}>
-                {'\u00A0'.repeat(4)}以三維高斯點雲渲染(3D Gaussian Splatting)進行數位文化保存，是一種結合先進三維重建與神經渲染技術的創新方法。
+                {'\u00A0'.repeat(8)}以三維高斯點雲渲染(3D Gaussian Splatting)進行數位文化保存，是一種結合先進三維重建與神經渲染技術的創新方法。
                 我們以寺廟建築為核心研究對象，透過高精度影像擷取與 3DGS 技術，將實地拍攝的照片轉換為細節豐富的三維場景，完整保留建築的紋理、結構與空間感。 
                 專案的首要目標，是建立可於網頁即時瀏覽的沉浸式三維模型，讓世界各地的人們能在虛擬空間中探索這些文化遺產。
                 這不僅能突破地理限制，擴大文化資產的觸及範圍，也能為未來的研究、教育與修復工作提供精確的數位檔案。 
@@ -354,12 +354,12 @@ const HomePage = ({ currentPage, onTabChange }) => {
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 7 }}>
               <Typography sx={{ color: "#4b5563", lineHeight: 1.8 }}>
-                    本專案結合攝影測量 (Photogrammetry) 與神經渲染 (Neural Rendering)，打造高精度的文化遺產三維重建流程。 
+                {'\u00A0'.repeat(8)}本專案結合攝影測量 (Photogrammetry) 與神經渲染 (Neural Rendering)，打造高精度的文化遺產三維重建流程。 
                 整個過程首先從寺廟建築的系統化拍攝展開：透過不同視角與高度拍攝大量具重疊區域的照片，確保能完整覆蓋目標場景。 
                 接著利用 COLMAP 進行 Structure from Motion (SfM) 以獲取每張影像的相機參數並生成稀疏三維點雲，為後續模型構建奠定精確的幾何基礎。<br/> <br/> 
-                    在核心的3D模型生成階段，我們採用了3D Gaussian Splatting, 3DGS技術。
+                {'\u00A0'.repeat(8)}在核心的3D模型生成階段，我們採用了3D Gaussian Splatting, 3DGS技術。
                 這項方法透過優化數百萬個三維高斯基元，精準地表現場景的幾何形狀與外觀。每個高斯基元使用位置、不透明度等參數呈現不同視角下的色彩變化。<br/> <br/> 
-                    最後透過可微光柵化(Differentiable Rasterization)的反覆訓練逐步提升模型的真實感。 
+                {'\u00A0'.repeat(8)}最後透過可微光柵化(Differentiable Rasterization)的反覆訓練逐步提升模型的真實感。 
                 不論是精緻的雕刻、建築紋理、歲月風化的表面，或是錯綜複雜的空間結構，甚至是自然光影效果都能被高度還原。
               </Typography>
             </Grid>
