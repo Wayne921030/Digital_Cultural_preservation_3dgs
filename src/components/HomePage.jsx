@@ -294,7 +294,7 @@ const HomePage = ({ currentPage, onTabChange }) => {
                   3D Culture Preservation
                 </Typography>
                 <Typography variant="h4" sx={{ color: "#6B5B47", mb: 4 }}>
-                  數位文化遺產保護
+                  數位文化遺產保存
                 </Typography>
               </Box>
             </Grid>
@@ -364,20 +364,140 @@ const HomePage = ({ currentPage, onTabChange }) => {
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 5 }}>
-              <MediaPlaceholder>
+              <Box
+                sx={{
+                  height: { xs: 220, md: 260 },
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: 2,
+                  backgroundColor: "transparent",
+                  position: "relative",
+                  overflow: "hidden",
+                  textAlign: "center",
+                }}
+              >
                 <Box  
                   component="img"  // ← Change from "gif" to "img"
-                  src="/media/Foo_dog_full-ezgif.com-video-to-gif-converter.gif"
-                  alt="Foo_dog animation"  // Add alt attribute for accessibility
+                  src="/img/SfM.png"
+                  alt="Structure from Motion"
                   sx={{ 
-                    width: "100%", 
-                    height: "100%", 
-                    objectFit: "cover", 
-                    borderRadius: "inherit", 
+                    maxWidth: "100%", 
+                    maxHeight: "100%", 
+                    width: "auto",
+                    height: "auto",
+                    objectFit: "contain", 
                     display: "block" 
                   }}
                 />
-              </MediaPlaceholder>
+              </Box>
+            </Grid>
+          </Grid>
+          
+          {/* Method Pipeline Image - Full width below text and SfM image */}
+          <Box 
+            sx={{ 
+              mt: 3,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center"
+            }}
+          >
+            <Box  
+              component="img"
+              src="/img/method_pipeline.png"
+              alt="Method pipeline"
+              sx={{ 
+                maxWidth: "100%", 
+                width: "auto",
+                height: "auto",
+                objectFit: "contain", 
+                display: "block"
+              }}
+            />
+          </Box>
+        </SectionCard>
+
+        {/* Project Features */}
+        <SectionCard sx={{ mb: 3 }}>
+          <Typography variant="h5" sx={{ color: "#6B5B47", fontWeight: 700, mb: 2 }}>
+            專案特點
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box sx={{ textAlign: "center", p: 2 }}>
+                <Typography variant="h6">
+                  實現高效的模型訓練與即時渲染互動式模型
+                </Typography>
+                <Box
+                  sx={{
+                    height: 200,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 2,
+                    backgroundColor: "transparent",
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                    <Box
+                      component="img"
+                      src="/img/scale.png"
+                      alt="Scale functionality"
+                      sx={{
+                        maxWidth: "45%",
+                        height: "auto",
+                        objectFit: "contain"
+                      }}
+                    />
+                    <Box
+                      component="img"
+                      src="/img/rotate.png"
+                      alt="Rotate functionality"
+                      sx={{
+                        maxWidth: "45%",
+                        height: "auto",
+                        objectFit: "contain"
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Box>
+            </Grid>
+            
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box sx={{ textAlign: "center", p: 2 }}>
+                <Typography variant="h6">
+                  建立具有細節層次的平台呈現方式 (Level of Detail)
+                </Typography>
+                <Box
+                  sx={{
+                    height: 200,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 2,
+                    backgroundColor: "transparent",
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src="/img/LOD.png"
+                    alt="Level of Detail demonstration"
+                    sx={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      width: "auto",
+                      height: "auto",
+                      objectFit: "contain"
+                    }}
+                  />
+                </Box>
+              </Box>
             </Grid>
           </Grid>
         </SectionCard>
