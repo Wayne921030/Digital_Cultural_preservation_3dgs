@@ -247,7 +247,16 @@ To add new cultural heritage scenes to the platform:
 
 ## Acknowledgments
 
-- [@mkkellogg/gaussian-splats-3d](https://github.com/mkkellogg/GaussianSplats3D) - Core 3D rendering for cultural heritage
-- [Material-UI](https://mui.com/) - UI components for cultural site browsing
-- [Vite](https://vitejs.dev/) - Fast development for cultural heritage applications
-- Cultural heritage institutions and preservation organizations worldwide
+This project builds upon the contributions of many open-source communities and research efforts. We gratefully acknowledge:
+
+- Kellogg, M. (2023). [gaussian-splats-3d](https://github.com/mkkellogg/gaussian-splats-3d) – Core 3D Gaussian splatting renderer for web visualization.  
+- Kerbl, B., Kopanas, G., Leimkühler, T., & Drettakis, G. (2023). *3D Gaussian Splatting for Real-Time Radiance Field Rendering*. NeurIPS 2023. [https://arxiv.org/abs/2308.04079](https://arxiv.org/abs/2308.04079) – Foundational method for Gaussian splatting.  
+- Schönberger, J. L., & Frahm, J.-M. (2016). *Structure-from-Motion Revisited*. CVPR 2016. [COLMAP](https://colmap.github.io/) – Camera pose estimation and sparse reconstruction.  
+- [PyTorch](https://pytorch.org/) – Deep learning framework for training Gaussian splatting models.  
+- [React](https://react.dev/) – Frontend framework for interactive cultural site browsing.  
+- [Material-UI](https://mui.com/) – Component library for modern UI design.  
+- [Vite](https://vitejs.dev/) – Development tooling and fast bundling.  
+- [Three.js](https://threejs.org/) – WebGL rendering library supporting interactive 3D visualization.  
+- [AWS S3 / CloudFront](https://aws.amazon.com/cloudfront/) – Hosting and global distribution of 3D cultural heritage assets.  
+- Cultural heritage institutions and preservation organizations worldwide, whose dedication inspires this work.  
+
